@@ -1,0 +1,26 @@
+{
+    "username": "105hua",
+    "uuid": "a2625e6e-6a99-44bf-85be-bc23d2bfe101",
+    "bans": [
+        {
+            "source": "ExampleBans",
+            "reason": "Having too many bitches.",
+            "url": "https://google.com",
+            "date": "2022-01-01T00:00:00Z",
+            "expires": "2022-01-01T00:00:00Z"
+        },
+        {
+            "source": "ExampleBans",
+            "url": "https://google.com",
+            "reason": "Being too sexy",
+            "date": "2022-01-01T00:00:00Z",
+            "expires": "2022-01-01T00:00:00Z"
+        }
+    ],
+    "totalbans": 1,
+    "skinurl": "https://example.com/skin.png",
+    "pastskins": [
+        "https://example.com/skin.png",
+        "https://example.com/skin2.png"
+    ]
+}
