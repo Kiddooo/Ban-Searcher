@@ -7,7 +7,7 @@ from utils import USER_AGENT
 previous_next_page_url = None
 
 
-async def parse_website_html(response_text, session, url: str):
+async def parse_website_html(response_text, session, url):
     soup = BeautifulSoup(response_text, 'html.parser')
 
     bans = []

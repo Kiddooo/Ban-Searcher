@@ -30,7 +30,7 @@ def extract_ban_info(row, url):
            }
    return None
 
-async def parse_website_html(session, response_text: str, url: str):
+async def parse_website_html(session, response_text, url):
     """Parse the HTML of a website and extract ban information."""
     soup = BeautifulSoup(response_text, 'html.parser')
     bans = []
@@ -69,7 +69,7 @@ async def parse_website_html(session, response_text: str, url: str):
 
     return bans
 
-async def handle_request(url: str, session):
+async def handle_request(url, session):
    """Handle a request to a website and extract ban information."""
    logging.info(url)
    try:
@@ -89,7 +89,7 @@ async def handle_request(url: str, session):
        logging.error(f"Exception occurred: {traceback.format_exc()}")
 
 
-async def parse_saico_website_html(session, response_text: str, url: str):
+async def parse_saico_website_html(session, response_text, url):
     """Extract ban information from the HTML of a Saico website."""
     soup = BeautifulSoup(response_text, 'html.parser')
     bans = []
@@ -136,7 +136,7 @@ async def parse_saico_website_html(session, response_text: str, url: str):
 
     return bans
 
-async def handle_request_saico(url: str, session):
+async def handle_request_saico(url, session):
    """Handle a request to a Saico website and extract ban information."""
    headers = {'Content-Type': 'application/json'}
    data = {

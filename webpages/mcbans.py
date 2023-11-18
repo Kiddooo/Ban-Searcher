@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 import traceback
 from utils import USER_AGENT
 
-async def parse_website_html(response_text, session, url: str):
+async def parse_website_html(response_text, session, url):
     if response_text == "":
         return None
     
