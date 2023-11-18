@@ -1,17 +1,14 @@
-# Mcbouner
-# https://mcbouncer.com/u/ad37bc56401c47b299c61080f2603c50/
-
 from bs4 import BeautifulSoup
-import requests
 from urllib.parse import urljoin
 import traceback
-import re
+import aiohttp
+from utils import USER_AGENT
 
 previous_next_page_url = None
 
 
-def parse_website_html(reponse_text: str, url: str):
-    soup = BeautifulSoup(reponse_text, 'html.parser')
+async def parse_website_html(response_text, session, url: str):
+    soup = BeautifulSoup(response_text, 'html.parser')
 
     bans = []
 
@@ -41,18 +38,20 @@ def parse_website_html(reponse_text: str, url: str):
             next_page_url = urljoin(url, next_button['href'])
 
             # Send a GET request to the next page
-            response = requests.get(next_page_url)
-            soup = BeautifulSoup(response.text, 'html.parser')
+            async with session.get(next_page_url) as response:
+                soup = BeautifulSoup(await response.text(), 'html.parser')
 
     return bans
 
 
-def handle_request(url: str, username):
+async def handle_request(url, session):
     try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            bans = parse_website_html(response.text, url)
-            if (len(bans) >= 1):
-                print(f"Found {len(bans)} bans for {username} at {url}")
+        print(url)
+        async with session.get(url, headers={"User-Agent": USER_AGENT}) as response:
+            if response.status == 200:
+                bans = await parse_website_html(await response.text(), session, url)
+                return bans
     except AttributeError as e:
+        print(traceback.format_exc() + url)
+    except aiohttp.client.ClientConnectorError as e:
         print(traceback.format_exc() + url)

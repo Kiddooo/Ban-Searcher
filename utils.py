@@ -5,6 +5,9 @@ from tqdm import tqdm
 from bs4 import BeautifulSoup
 import json
 
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+FLARESOLVER_URL = 'http://localhost:8191/v1'
+
 
 def UUIDToUsername(UUID: str) -> str:
 	try:
@@ -43,8 +46,6 @@ def check_response_text(response_text, search_strings):
 
 
 def playerSkins(current=False, username=False, uuid=False): #username or uuid is 'false' because its not mandatory to enter them11
-	base_url = 'http://localhost:8191/v1'
-
 	if isinstance(username, str):
 		url = 'https://namemc.com/profile/' + username#gets websites code or scrapes it
 
@@ -59,7 +60,7 @@ def playerSkins(current=False, username=False, uuid=False): #username or uuid is
 		"maxTimeout": 60000
 	}
 
-	response = requests.post(base_url, data=json.dumps(data), headers=headers)
+	response = requests.post(FLARESOLVER_URL, data=json.dumps(data), headers=headers)
 	html = response.json().get('solution').get('response')
 	soup = BeautifulSoup(html, 'html.parser')
 	skins = soup.find_all('script', attrs={'defer': ''}, src=lambda x: "s.namemc.com/i/" in x if x else False)[:-1]

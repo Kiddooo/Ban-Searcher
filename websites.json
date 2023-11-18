@@ -12,7 +12,7 @@
         "https://bans.purityvanilla.com/history.php?uuid=<UUID>",
         "https://litebans.shiuki.eu.org/minersleague/punishments/history.php?uuid=<UUID>",
         "https://minecochia.net/bans/history.php?uuid=<UUID>",
-        "https://saicopvp.com/bans/history.php?uuid=<UUID>",
+        "https://saicopvp.com/bans/history.php?uuid=<UUID-DASH>",
         "https://bans.dragonstone.pw/history.php?uuid=<UUID>",
         "https://alttd.com/bans/history?uuid=<UUID>",
         "https://nd2.worldofkeralis.com/bans/history.php?uuid=<UUID>",
