@@ -39,22 +39,24 @@
         "https://bans.horizonsend.net/history.php?uuid=<UUID>",
         "https://bans.gp-mc.net/history.php?uuid=<UUID>",
         "https://www.pickaxemania.com/playerstatus/history.php?uuid=<UUID>",
-        "https://minedhype.com/bans/history.php?uuid=<UUID>"
+        "https://minedhype.com/bans/history.php?uuid=<UUID>",
+        "https://opblocks.com/bans/history.php?uuid=<UUID>",
+        "https://sanciones.minelatino.com/history.php?uuid=<UUID>",
+        "https://medievalpvp.net/bans/history.php?uuid=<UUID>",
+        "http://www.pokerevolution.es/bans/history.php?uuid=<UUID>",
+        "https://bans.pixelgaming.co/history.php?uuid=<UUID>",
+        "http://eventyrcraft.net/ban/history.php?uuid=<UUID-DASH>",
+        "https://www.myinstacraft.com/bans/history.php?uuid=<UUID>",
+        "http://264445_web.fakaheda.eu/history.php?uuid=<UUID-DASH>"
     ],
-    "USERNAME": [
-        "https://jartexnetwork.com/bans/search/<USERNAME>/",
-        "https://pika-network.net/bans/search/<USERNAME>/", 
-        "https://www.strongcraft.org/players/<USERNAME>/",
-        "https://bans.manacube.com/user?user=<USERNAME>"
-    ],
-    "MCONLINE": [
-        "https://minecraftonline.com/cgi-bin/getplayerinfo?<USERNAME>"
+    "MCBOUNCER": [
+        "https://mcbouncer.com/u/<UUID>/bansFor"
     ],
     "MCBANS": [
         "https://www.mcbans.com/player/<UUID>"
     ],
-    "MCBOUNCER": [
-        "https://mcbouncer.com/u/<UUID>/bansFor"
+    "MCONLINE": [
+        "https://minecraftonline.com/cgi-bin/getplayerinfo?<USERNAME>"
     ],
     "JOHNYMUFFIN": [
         "https://bans.johnymuffin.com/user/<UUID-DASH>"
@@ -67,5 +69,14 @@
     ],
     "COSMICPRISON": [
         "https://bans-api.cosmic.games/prisons/player/<USERNAME>"
+    ],
+    "STRONGCRAFT": [
+        "https://www.strongcraft.org/players/<USERNAME>/"
+    ],
+    "MANACUBE": [
+        "https://bans.manacube.com/user?user=<USERNAME>"
+    ],
+    "SNAPCRAFT": [
+        "https://snapcraft.net/bans/search/<USERNAME>/?filter=bans"
     ]
 }

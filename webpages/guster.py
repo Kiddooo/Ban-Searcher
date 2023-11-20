@@ -1,0 +1,1 @@
+# https://bans.guster.ro/punishes/?type=bans

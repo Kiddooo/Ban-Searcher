@@ -6,7 +6,7 @@ from utils import USER_AGENT
 
 async def parse_website_html(response_text, session, url):
     if response_text == "":
-        return None
+        return []
     
     soup = BeautifulSoup(response_text, 'html.parser')
 
