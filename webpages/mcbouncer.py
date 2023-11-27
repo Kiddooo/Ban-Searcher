@@ -2,6 +2,10 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import traceback
 import aiohttp
+import tldextract
+from datetime import date, datetime
+from dateutil.relativedelta import relativedelta
+
 from utils import USER_AGENT
 
 previous_next_page_url = None
@@ -17,11 +21,18 @@ async def parse_website_html(response_text, session, url):
         if table is not None:
             for row in table.find_all('tr')[1:]:  # Skip the header row
                 columns = row.find_all('td')
+
+                website_ban_date_years = columns[2].text.replace('\xa0', " ").split("years")[0].strip()
+                website_ban_date_months = columns[2].text.replace("\xa0", "", ).split("months")[0].split(",")[1].strip()
+                now = date.today()
+                ban_date = datetime.combine(now - relativedelta(years=int(website_ban_date_years), months=int(website_ban_date_months)), datetime.min.time())
+
                 ban = {
-                    'bannedBy': columns[0].text,
-                    'Reason': columns[1].text,
-                    'TimeBanned': columns[2].text.replace('\xa0', " "),
-                    'Server': columns[3].text
+                    'source': tldextract.extract(url).domain,
+                    'url': url,
+                    'reason': columns[1].text,
+                    'date': int(ban_date.timestamp()),
+                    'expires': 'N/A'
                 }
                 bans.append(ban)
 
@@ -46,7 +57,6 @@ async def parse_website_html(response_text, session, url):
 
 async def handle_request(url, session):
     try:
-        print(url)
         async with session.get(url, headers={"User-Agent": USER_AGENT}) as response:
             if response.status == 200:
                 bans = await parse_website_html(await response.text(), session, url)

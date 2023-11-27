@@ -12,7 +12,6 @@
         "https://bans.purityvanilla.com/history.php?uuid=<UUID>",
         "https://litebans.shiuki.eu.org/minersleague/punishments/history.php?uuid=<UUID>",
         "https://minecochia.net/bans/history.php?uuid=<UUID>",
-        "https://saicopvp.com/bans/history.php?uuid=<UUID-DASH>",
         "https://bans.dragonstone.pw/history.php?uuid=<UUID>",
         "https://alttd.com/bans/history?uuid=<UUID>",
         "https://nd2.worldofkeralis.com/bans/history.php?uuid=<UUID>",
@@ -21,10 +20,8 @@
         "https://nytro.co/bans/history.php?uuid=<UUID>",
         "https://bans.skykingdoms.net/history.php?uuid=<UUID>",
         "https://siphonmc.com/bans/history/<UUID>",
-        "https://minecraft.rtgame.co.uk/bans/history.php?uuid=<UUID-DASH>",
         "https://bans.dogecraft.net/history.php?uuid=<UUID>",
         "https://differentcraft.net/bans/history.php?uuid=<UUID>",
-        "https://ban.titanet.it/history.php?uuid=<UUID>",
         "https://cdn.minecore.cz/banlist/history.php?uuid=<UUID>",
         "https://www.mooncraft.es/bans/history.php?uuid=<UUID>",
         "https://www.karmacraft.es/Sanciones/history.php?uuid=<UUID>",
@@ -41,13 +38,16 @@
         "https://www.pickaxemania.com/playerstatus/history.php?uuid=<UUID>",
         "https://minedhype.com/bans/history.php?uuid=<UUID>",
         "https://opblocks.com/bans/history.php?uuid=<UUID>",
-        "https://sanciones.minelatino.com/history.php?uuid=<UUID>",
         "https://medievalpvp.net/bans/history.php?uuid=<UUID>",
         "http://www.pokerevolution.es/bans/history.php?uuid=<UUID>",
         "https://bans.pixelgaming.co/history.php?uuid=<UUID>",
+        "https://www.myinstacraft.com/bans/history.php?uuid=<UUID>"
+    ],
+    "LITEBANS_UUID_DASH": [
+        "http://264445_web.fakaheda.eu/history.php?uuid=<UUID-DASH>",
         "http://eventyrcraft.net/ban/history.php?uuid=<UUID-DASH>",
-        "https://www.myinstacraft.com/bans/history.php?uuid=<UUID>",
-        "http://264445_web.fakaheda.eu/history.php?uuid=<UUID-DASH>"
+        "https://minecraft.rtgame.co.uk/bans/history.php?uuid=<UUID-DASH>",
+        "https://saicopvp.com/bans/history.php?uuid=<UUID-DASH>"
     ],
     "MCBOUNCER": [
         "https://mcbouncer.com/u/<UUID>/bansFor"
@@ -74,9 +74,15 @@
         "https://www.strongcraft.org/players/<USERNAME>/"
     ],
     "MANACUBE": [
-        "https://bans.manacube.com/user?user=<USERNAME>"
+        "https://bans.manacube.com/user?user=<USERNAME>#bans"
     ],
     "SNAPCRAFT": [
         "https://snapcraft.net/bans/search/<USERNAME>/?filter=bans"
+    ],
+    "CUBEVILLE": [
+        "https://www.cubeville.org/cv-site/banlist.php?username=<USERNAME>"
+    ],
+    "GUSTER": [
+        "https://bans.guster.ro/api.php?type=player&player=<USERNAME>&page=1&perpage=25"
     ]
 }

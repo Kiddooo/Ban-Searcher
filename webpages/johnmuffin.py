@@ -2,8 +2,12 @@ import aiohttp
 from bs4 import BeautifulSoup, Comment
 import traceback
 from utils import USER_AGENT
+import tldextract
+import datetime
 
-async def parse_website_html(response_text):
+DATE_FORMAT = "%b %d, %Y %I:%M:%S %p"
+
+async def parse_website_html(response_text, url):
     soup = BeautifulSoup(response_text, 'html.parser')
 
     if soup.find('strong', text='Unknown User'):
@@ -17,12 +21,11 @@ async def parse_website_html(response_text):
             for row in table.find_all('tr')[1:]: # Skip the header row
                 columns = row.find_all('td')
                 ban = {
-                    'banID': columns[0].text,
-                    'bannedBy': columns[1].text,
-                    'Reason': columns[2].text,
-                    'Expires': columns[3].text,
-                    'Server': columns[4].text,
-                    'BanActive': columns[5].text
+                    'source': tldextract.extract(url).domain,
+                    'url': url,
+                    'reason': columns[2].text,
+                    'date': "N/A",
+                    'expires': "Permanent" if "Permanent" in columns[3].text else int(datetime.datetime.strptime(columns[3].text, DATE_FORMAT).timestamp())
                 }
                 bans.append(ban)
         return bans
@@ -32,7 +35,7 @@ async def handle_request(url, session):
     try:
         async with session.get(url, headers={"User-Agent": USER_AGENT}) as response:
             if response.status == 200:
-                bans = await parse_website_html(await response.text())
+                bans = await parse_website_html(await response.text(), url)
                 return bans
     except AttributeError as e:
         print(traceback.format_exc() + url)

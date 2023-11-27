@@ -2,3 +2,5 @@ beautifulsoup4
 Requests
 tldextract
 tqdm
+aiohttp
+python-dateutil
