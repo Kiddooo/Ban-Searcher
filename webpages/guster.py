@@ -89,6 +89,7 @@ async def handle_request(url, session):
         list: A list of bans obtained from parsing the website HTML, if the request was successful.
     """
     try:
+        print(f"Fetching {url}...")
         async with session.get(url, headers={"User-Agent": USER_AGENT}) as response:
             if response.status == 200:
                 bans = await parse_website_html(await response.text(), session, url)

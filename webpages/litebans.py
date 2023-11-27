@@ -100,6 +100,7 @@ async def handle_request(url, session):
        list: A list of bans, if the request is successful and the URL matches "saicopvp" or if the response status is 200 and the website HTML is successfully parsed.
    """
    try:
+       print(f"Fetching {url}...")
        if "saicopvp" in url:
            bans = await handle_request_saico(url, session)
            return bans

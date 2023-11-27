@@ -14,6 +14,7 @@ NO_AUTO_BANS = "No automatic bans have been filed."
 
 async def handle_request(url, session):
     try:
+        print(f"Fetching {url}...")
         async with session.get(url, headers={"User-Agent": USER_AGENT}) as response:
             if response.status == 200:
                 response_text = await response.text()

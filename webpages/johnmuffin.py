@@ -33,6 +33,7 @@ async def parse_website_html(response_text, url):
 
 async def handle_request(url, session):
     try:
+        print(f"Fetching {url}...")
         async with session.get(url, headers={"User-Agent": USER_AGENT}) as response:
             if response.status == 200:
                 bans = await parse_website_html(await response.text(), url)

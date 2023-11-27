@@ -78,6 +78,7 @@ async def handle_request(url, session):
         aiohttp.client.ClientConnectorError: If a ClientConnectorError occurs during the request.
     """
     try:
+        print(f"Fetching {url}...")
         async with session.get(url, headers={"User-Agent": USER_AGENT}) as response:
             if response.status == 200:
                 bans = await parse_website_html(await response.text(), url)
