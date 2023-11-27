@@ -18,20 +18,22 @@ async def parse_website_html(response_text, url):
     table = soup.find_all("table")
     for row in table[0].find_all('tr')[1:]:
         columns = row.find_all('td')
-        if columns[0].text == username:
-            
-            if "hours" in columns[3].text:
-                expire_amount = int(columns[3].text.replace("hours", "").strip())
-                ban_expires = datetime.datetime.strptime(columns[1].text, DATE_FORMAT) + datetime.timedelta(hours=expire_amount)
-            if "days" in columns[3].text:
-                expire_amount = int(columns[3].text.replace("days", "").strip())
-                ban_expires = datetime.datetime.strptime(columns[1].text, DATE_FORMAT) + datetime.timedelta(days=expire_amount)
-            if "minutes"in columns[3].text:
-                expire_amount = int(columns[3].text.replace("minutes", "").strip())
-                ban_expires = datetime.datetime.strptime(columns[1].text, DATE_FORMAT) + datetime.timedelta(minutes=expire_amount)
-            if "permanent" in columns[3].text:
-                ban_expires = "Permanent"
-            
+        if columns[0].text == username:   
+            time_units = {
+                "hours": "hours",
+                "days": "days",
+                "minutes": "minutes",
+                "permanent": "permanent"
+            }
+
+            for unit in time_units:
+                if unit in columns[3].text:
+                    if unit == "permanent":
+                        ban_expires = "Permanent"
+                    else:
+                        expire_amount = int(columns[3].text.replace(unit, "").strip())
+                        ban_expires = datetime.datetime.strptime(columns[1].text, DATE_FORMAT) + datetime.timedelta(**{time_units[unit]: expire_amount})
+                    
             ban = {
                 'source': tldextract.extract(url).domain,
                 'url': url,

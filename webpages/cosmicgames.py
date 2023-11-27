@@ -14,8 +14,8 @@ async def parse_website_html(response_text, url):
                     'source': tldextract.extract(url).domain,
                     'url': url,
                     'reason': offence['reason'],
-                    'time': int(offence['time']),
-                    'expires': int(offence['expiration'])
+                    'date': int(offence['time'] / 1000),
+                    'expires': int(offence['expiration'] / 1000)
                 })
     return bans
 
@@ -25,7 +25,7 @@ async def handle_request(url, session):
             if response.status == 200:
                 bans = await parse_website_html(await response.text(), url)
                 return bans
-    except AttributeError as e:
+    except AttributeError:
         print(traceback.format_exc() + url)
     except aiohttp.client.ClientConnectorError:
         print(traceback.format_exc() + url)

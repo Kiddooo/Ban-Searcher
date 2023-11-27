@@ -22,8 +22,8 @@ async def parse_website_html(response_text, session, url):
             for row in table.find_all('tr')[1:]:  # Skip the header row
                 columns = row.find_all('td')
 
-                website_ban_date_years = columns[2].text.replace('\xa0', " ").split("years")[0].strip()
-                website_ban_date_months = columns[2].text.replace("\xa0", "", ).split("months")[0].split(",")[1].strip()
+                website_ban_date_years = columns[2].text.replace('\xa0', " ").split("year")[0].strip()
+                website_ban_date_months = columns[2].text.replace("\xa0", "", ).split("month")[0].split(",")[1].replace("ago", "").strip()
                 now = date.today()
                 ban_date = datetime.combine(now - relativedelta(years=int(website_ban_date_years), months=int(website_ban_date_months)), datetime.min.time())
 

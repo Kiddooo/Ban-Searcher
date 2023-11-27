@@ -24,7 +24,8 @@ async def handle_request(url, session):
                     get_bans(response_text, 'autobans', url)
                 )
                 for ban in (bans, perm_bans, auto_bans):
-                    _bans.extend(ban)
+                    if ban is not None:
+                        _bans.extend(ban)
                 return _bans
     except Exception as e:
         logging.error(f"Error: {traceback.format_exc()}, URL: {url}")

@@ -16,9 +16,9 @@ async def parse_website_html(response_text, url):
     if table is not None:
         for row in table.find_all('tr')[1:]: # Skip the header row
             columns = row.find_all('td')[1:]
-
-            expires_date_object = int(datetime.strptime(columns[3].text.replace("st", "").replace("nd", "").replace("rd", "").replace("th", "").replace("Augu", "August"), "%d %B %Y at %I:%M%p").replace(tzinfo=timezone.utc).timestamp())
-            ban_date_object = int(datetime.strptime(columns[4].text.replace("st", "").replace("nd", "").replace("rd", "").replace("th", "").replace("Augu", "August"), "%d %B %Y at %I:%M%p").replace(tzinfo=timezone.utc).timestamp())
+            print(len(columns), columns)
+            expires_date_object = int(datetime.strptime(columns[4].text.replace("st", "").replace("nd", "").replace("rd", "").replace("th", "").replace("Augu", "August"), "%d %B %Y at %I:%M%p").replace(tzinfo=timezone.utc).timestamp())
+            ban_date_object = int(datetime.strptime(columns[3].text.replace("st", "").replace("nd", "").replace("rd", "").replace("th", "").replace("Augu", "August"), "%d %B %Y at %I:%M%p").replace(tzinfo=timezone.utc).timestamp())
             
             ban = {
                 'source': tldextract.extract(url).domain,
