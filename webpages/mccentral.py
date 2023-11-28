@@ -1,6 +1,5 @@
-import aiohttp
 import json
-import traceback
+from tqdm import tqdm
 from utils import USER_AGENT
 import tldextract
 from datetime import datetime
@@ -24,7 +23,7 @@ def parse_website_html(response_text, url):
 
 def handle_request(url):
     try:
-        print(f"Fetching {url}...")
+        tqdm.write(f"Fetching {url}...")
         response = requests.get(url, headers={"User-Agent": USER_AGENT})
         if response.status_code == 200:
             bans = parse_website_html(response.text, url)

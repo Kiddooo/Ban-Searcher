@@ -1,12 +1,12 @@
 import json
 import utils
 from webpages import litebans, mcbouncer, mcbans, mconline, johnymuffin, mccentral, cosmicgames, mcbrawl, snapcraft, cubeville, guster, strongcraft, manacube
-from multiprocessing.dummy import Pool as ThreadPool
 import os
 import subprocess
 import webbrowser
 import time
-import concurrent
+from tqdm import tqdm
+import concurrent.futures
 
 PLAYER_USERNAME = input("Enter a username: ")
 PLAYER_UUID = utils.UsernameToUUID(PLAYER_USERNAME)
@@ -49,9 +49,9 @@ def main():
         for future, task in zip(futures, tasks):
             futures_to_urls[future] = task[1]  # Store the URL associated with the future
 
-        for future in concurrent.futures.as_completed(futures):
+        for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc="Processing URLs"):
             url = futures_to_urls[future]  # Get the URL associated with the future
-            # print(f"Future from URL: {url}")
+            tqdm.write(f"Future from URL: {url}")
             bans = future.result()
             if bans is not None and len(bans) != 0:
                 _bans.extend(bans)

@@ -1,11 +1,10 @@
-
 import requests
 from bs4 import BeautifulSoup
 import traceback
 from utils import USER_AGENT
 import tldextract
 from datetime import datetime, timezone
-from concurrent.futures import ThreadPoolExecutor
+from tqdm import tqdm
 
 def parse_website_html(response_text, url):
     soup = BeautifulSoup(response_text, 'html.parser')
@@ -32,7 +31,7 @@ def parse_website_html(response_text, url):
 
 def handle_request(url):
     try:
-        print(f"Fetching {url}...")
+        tqdm.write(f"Fetching {url}...")
         response = requests.get(url, headers={"User-Agent": USER_AGENT})
         if response.status_code == 200:
             bans = parse_website_html(response.text, url)

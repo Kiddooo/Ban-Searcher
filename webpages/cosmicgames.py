@@ -3,6 +3,7 @@ import traceback
 from utils import USER_AGENT
 import tldextract
 import requests
+from tqdm import tqdm
 
 def parse_website_html(response_text, url):
     json_response = json.loads(response_text)
@@ -21,7 +22,7 @@ def parse_website_html(response_text, url):
 
 def handle_request(url):
     try:
-        print(f"Fetching {url}...")
+        tqdm.write(f"Fetching {url}...")
         with requests.get(url, headers={"User-Agent": USER_AGENT}) as response:
             if response.status_code == 200:
                 bans = parse_website_html(response.text, url)

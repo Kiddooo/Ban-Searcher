@@ -1,5 +1,7 @@
 import requests
 import tldextract
+from tqdm import tqdm
+
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
 def parse_website_html(response_text, url):
@@ -22,7 +24,7 @@ def parse_website_html(response_text, url):
 
 def handle_request(url):
     try:
-        print(f"Fetching {url}...")
+        tqdm.write(f"Fetching {url}...")
         response = requests.get(url, headers={"User-Agent": USER_AGENT})
         if response.status_code == 200:
             bans = parse_website_html(response.text, url)

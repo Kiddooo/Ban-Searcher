@@ -1,4 +1,4 @@
-# https://snapcraft.net/bans/search/TheLionTR/
+from tqdm import tqdm
 from bs4 import BeautifulSoup
 from utils import USER_AGENT
 import tldextract
@@ -24,7 +24,7 @@ def parse_website_html(response_text, url):
 
 def handle_request(url):
     try:
-        print(f"Fetching {url}...")
+        tqdm.write(f"Fetching {url}...")
         response = requests.get(url, headers={"User-Agent": USER_AGENT})
         if response.status_code == 200:
             bans = parse_website_html(response.text, url)

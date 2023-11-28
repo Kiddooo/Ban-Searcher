@@ -1,6 +1,5 @@
 import logging
 from bs4 import BeautifulSoup
-import aiohttp
 import urllib.parse
 import traceback
 import re
@@ -8,6 +7,8 @@ import tldextract
 import json
 from utils import FLARESOLVER_URL, USER_AGENT
 import datetime
+from tqdm import tqdm
+
 
 pattern = re.compile(
   r"(\bNon è mai entrato\b)|(\bNo ha entrado al servidor\b)|(\bnot found in database\b)|(\bhas not joined before\b)|(\bEventyrCraftIngen Straffe Fundet\b)",
@@ -74,7 +75,7 @@ def parse_website_html(response_text, url):
 
 def handle_request(url):
     try:
-        print(f"Fetching {url}...")
+        tqdm.write(f"Fetching {url}...")
         if "saicopvp" in url:
             bans = handle_request_saico(url)
             return bans
@@ -148,4 +149,4 @@ def handle_request_saico(url):
         bans = parse_saico_website_html(response_html.get('solution').get('response'), url)
         return bans
     else: 
-        logging.error(f"AttributeError occurred: fuckin saico")
+        tqdm.write(f"AttributeError occurred: fuckin saico")

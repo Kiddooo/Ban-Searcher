@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup, Comment
 from utils import USER_AGENT
 import tldextract
 import datetime
+from tqdm import tqdm
 import traceback
 
 DATE_FORMAT = "%b %d, %Y %I:%M:%S %p"
@@ -33,7 +34,7 @@ def parse_website_html(response_text, url):
 
 def handle_request(url):
     try:
-        print(f"Fetching {url}...")
+        tqdm.write(f"Fetching {url}...")
         response = requests.get(url, headers={"User-Agent": USER_AGENT})
         if response.status_code == 200:
             bans = parse_website_html(response.text, url)

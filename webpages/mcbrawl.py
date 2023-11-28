@@ -6,6 +6,7 @@ import tldextract
 import traceback
 import datetime
 import concurrent
+from tqdm import tqdm
 
 
 PLAYER_DOESNT_EXIST = "Player doesn't exist"
@@ -41,7 +42,7 @@ def get_bans(response_text, ban_type, url):
 
 def handle_request(url):
     try:
-        print(f"Fetching {url}...")
+        tqdm.write(f"Fetching {url}...")
         response = requests.get(url, headers={"User-Agent": USER_AGENT})
         if response.status_code == 200:
             response_text = response.text

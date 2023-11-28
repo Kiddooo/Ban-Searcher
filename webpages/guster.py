@@ -5,6 +5,8 @@ from utils import USER_AGENT
 from urllib.parse import urlparse
 from datetime import datetime
 import json
+from tqdm import tqdm
+
 
 def fetch_page(base_url, player_name, page):
     response = requests.get(base_url.format(player_name, page), headers={"User-Agent": USER_AGENT})
@@ -15,7 +17,6 @@ def fetch_page(base_url, player_name, page):
         raise Exception(f"Failed to fetch page {page} with status {response.status_code}")
 
 def parse_website_html(response_text, url):
-    print(response_text)
     banlist = json.loads(response_text)
     last_page = banlist['lastpage']
     if banlist['totalpunish'] == '0':
@@ -44,12 +45,12 @@ def parse_website_html(response_text, url):
 
 def handle_request(url):
     try:
-        print(f"Fetching {url}...")
+        tqdm.write(f"Fetching {url}...")
         response = requests.get(url, headers={"User-Agent": USER_AGENT})
         if response.status_code == 200:
             bans = parse_website_html(response.text, url)
             return bans
-    except AttributeError as e:
-        print(traceback.format_exc() + url)
+    except AttributeError:
+        pass
     except requests.exceptions.RequestException:
-        print(traceback.format_exc() + url)
+        pass
