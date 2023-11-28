@@ -22,7 +22,6 @@
         "https://siphonmc.com/bans/history/<UUID>",
         "https://bans.dogecraft.net/history.php?uuid=<UUID>",
         "https://differentcraft.net/bans/history.php?uuid=<UUID>",
-        "https://cdn.minecore.cz/banlist/history.php?uuid=<UUID>",
         "https://www.mooncraft.es/bans/history.php?uuid=<UUID>",
         "https://www.karmacraft.es/Sanciones/history.php?uuid=<UUID>",
         "https://hydrapvp.it/bans/history.php?uuid=<UUID>",

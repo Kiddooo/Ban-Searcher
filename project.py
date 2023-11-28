@@ -5,6 +5,7 @@ from multiprocessing.dummy import Pool as ThreadPool
 import os
 import subprocess
 import webbrowser
+import time
 import concurrent
 
 PLAYER_USERNAME = input("Enter a username: ")
@@ -32,6 +33,8 @@ def main():
         "CUBEVILLE": (cubeville.handle_request, "<USERNAME>", PLAYER_USERNAME),
         "GUSTER": (guster.handle_request, "<USERNAME>", PLAYER_USERNAME)
     }
+    
+    start_time = time.time()
 
     tasks = []
     for url_type, (handle_request, replacement, value) in url_types.items():
@@ -39,10 +42,16 @@ def main():
             url = url.replace(replacement, value)
             tasks.append((handle_request, url))
 
+    futures_to_urls = {}
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         futures = [executor.submit(handle_request, url) for handle_request, url in tasks]
+        for future, task in zip(futures, tasks):
+            futures_to_urls[future] = task[1]  # Store the URL associated with the future
 
         for future in concurrent.futures.as_completed(futures):
+            url = futures_to_urls[future]  # Get the URL associated with the future
+            # print(f"Future from URL: {url}")
             bans = future.result()
             if bans is not None and len(bans) != 0:
                 _bans.extend(bans)
@@ -58,6 +67,8 @@ def main():
     with open("SecretFrontend/bans.json", "w", encoding="utf-8") as bans_json:
         json.dump(ban_report, bans_json, indent=4)
 
+    end_time = time.time()
+    print(f"Took {end_time - start_time} seconds to generate")
     print("Opening report...")
     subprocess.Popen(["python", "-m", "http.server", "--bind", "127.0.0.1", "--directory", "SecretFrontend"])
     webbrowser.open("http://127.0.0.1:8000/index.html", new=2, autoraise=True)
