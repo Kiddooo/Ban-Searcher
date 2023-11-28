@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-import traceback
-import aiohttp
+import requests
 import tldextract
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
@@ -11,7 +10,7 @@ from utils import USER_AGENT
 previous_next_page_url = None
 
 
-async def parse_website_html(response_text, session, url):
+def parse_website_html(response_text, url):
     soup = BeautifulSoup(response_text, 'html.parser')
 
     bans = []
@@ -49,20 +48,17 @@ async def parse_website_html(response_text, session, url):
             next_page_url = urljoin(url, next_button['href'])
 
             # Send a GET request to the next page
-            async with session.get(next_page_url) as response:
-                soup = BeautifulSoup(await response.text(), 'html.parser')
+            response = requests.get(next_page_url)
+            soup = BeautifulSoup(response.text, 'html.parser')
 
     return bans
 
-
-async def handle_request(url, session):
+def handle_request(url):
     try:
         print(f"Fetching {url}...")
-        async with session.get(url, headers={"User-Agent": USER_AGENT}) as response:
-            if response.status == 200:
-                bans = await parse_website_html(await response.text(), session, url)
-                return bans
-    except AttributeError as e:
-        print(traceback.format_exc() + url)
-    except aiohttp.client.ClientConnectorError as e:
-        print(traceback.format_exc() + url)
+        response = requests.get(url, headers={"User-Agent": USER_AGENT})
+        if response.status_code == 200:
+            bans = parse_website_html(response.text, url)
+            return bans
+    except requests.exceptions.RequestException as e:
+        print(str(e) + url)

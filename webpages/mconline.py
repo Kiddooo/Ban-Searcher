@@ -1,9 +1,8 @@
-import aiohttp
-import traceback
+import requests
 import tldextract
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
-async def parse_website_html(response_text, url):
+def parse_website_html(response_text, url):
     try:
         bans = []
         _ban = response_text.split("\n")[3:-1][0].split(';')
@@ -20,14 +19,13 @@ async def parse_website_html(response_text, url):
     
     return bans
 
-async def handle_request(url, session):
+
+def handle_request(url):
     try:
         print(f"Fetching {url}...")
-        async with session.get(url,headers={"User-Agent": USER_AGENT}) as response:
-            if response.status == 200:
-                bans = await parse_website_html(await response.text(), url)
-                return bans
-    except AttributeError as e:
-        print(traceback.format_exc() + url)
-    except aiohttp.client.ClientConnectorError as e:
-        print(traceback.format_exc() + url)
+        response = requests.get(url, headers={"User-Agent": USER_AGENT})
+        if response.status_code == 200:
+            bans = parse_website_html(response.text, url)
+            return bans
+    except requests.exceptions.RequestException as e:
+        print(str(e) + url)

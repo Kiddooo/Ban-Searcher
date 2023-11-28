@@ -4,8 +4,9 @@ import traceback
 from utils import USER_AGENT
 import tldextract
 from datetime import datetime
+import requests
 
-async def parse_website_html(response_text, url):
+def parse_website_html(response_text, url):
     bans = []
     json_response = json.loads(response_text)['results']
     
@@ -21,14 +22,12 @@ async def parse_website_html(response_text, url):
                 })
     return bans
 
-async def handle_request(url, session):
+def handle_request(url):
     try:
         print(f"Fetching {url}...")
-        async with session.get(url, headers={"User-Agent": USER_AGENT}) as response:
-            if response.status == 200:
-                bans = await parse_website_html(await response.text(), url)
-                return bans
-    except AttributeError as e:
-        print(traceback.format_exc() + url)
-    except aiohttp.client.ClientConnectorError:
-        print(traceback.format_exc() + url)
+        response = requests.get(url, headers={"User-Agent": USER_AGENT})
+        if response.status_code == 200:
+            bans = parse_website_html(response.text, url)
+            return bans
+    except requests.exceptions.RequestException as e:
+        print(str(e) + url)

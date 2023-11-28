@@ -1,10 +1,11 @@
 from bs4 import BeautifulSoup
-import asyncio
+import requests
 from utils import USER_AGENT
 import logging
 import tldextract
 import traceback
 import datetime
+import concurrent
 
 
 PLAYER_DOESNT_EXIST = "Player doesn't exist"
@@ -12,27 +13,7 @@ NO_BANS = "No bans have been filed."
 NO_PERM_BANS = "No permanent bans have been filed."
 NO_AUTO_BANS = "No automatic bans have been filed."
 
-async def handle_request(url, session):
-    try:
-        print(f"Fetching {url}...")
-        async with session.get(url, headers={"User-Agent": USER_AGENT}) as response:
-            if response.status == 200:
-                response_text = await response.text()
-                _bans = []
-                bans, perm_bans, auto_bans = await asyncio.gather(
-                    get_bans(response_text, 'bans', url),
-                    get_bans(response_text, 'permbans', url),
-                    get_bans(response_text, 'autobans', url)
-                )
-                for ban in (bans, perm_bans, auto_bans):
-                    if ban is not None:
-                        _bans.extend(ban)
-                return _bans
-    except Exception as e:
-        logging.error(f"Error: {traceback.format_exc()}, URL: {url}")
-
-
-async def get_bans(response_text, ban_type, url):
+def get_bans(response_text, ban_type, url):
     soup = BeautifulSoup(response_text, 'html.parser')
     
     if soup.find('div', class_='alert alert-danger text-center'):
@@ -57,3 +38,21 @@ async def get_bans(response_text, ban_type, url):
                 bans.append(ban)
         return bans
     return None
+
+def handle_request(url):
+    try:
+        print(f"Fetching {url}...")
+        response = requests.get(url, headers={"User-Agent": USER_AGENT})
+        if response.status_code == 200:
+            response_text = response.text
+            _bans = []
+            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+                futures = [executor.submit(get_bans, response_text, ban_type, url) for ban_type in ['bans', 'permbans', 'autobans']]
+                for future in concurrent.futures.as_completed(futures):
+                    ban = future.result()
+                    if ban is not None:
+                        _bans.extend(ban)
+            return _bans
+    except Exception as e:
+        logging.error(f"Error: {traceback.format_exc()}, URL: {url}")
+

@@ -1,13 +1,12 @@
-import aiohttp
 from bs4 import BeautifulSoup
-import traceback
 from utils import USER_AGENT
 import tldextract
 import datetime
+import requests
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
-async def parse_website_html(response_text, url):
+def parse_website_html(response_text, url):
     
     username = url.split("?username=")[1].strip()
     
@@ -46,14 +45,12 @@ async def parse_website_html(response_text, url):
     return bans
 
 
-async def handle_request(url, session):
+def handle_request(url):
     try:
         print(f"Fetching {url}...")
-        async with session.get(url, headers={"User-Agent": USER_AGENT}) as response:
-            if response.status == 200:
-                bans = await parse_website_html(await response.text(), url)
-                return bans
-    except AttributeError as e:
-        print(traceback.format_exc() + url)
-    except aiohttp.client.ClientConnectorError:
-        print(traceback.format_exc() + url)
+        response = requests.get(url, headers={"User-Agent": USER_AGENT})
+        if response.status_code == 200:
+            bans = parse_website_html(response.text, url)
+            return bans
+    except requests.exceptions.RequestException as e:
+        print(e)
