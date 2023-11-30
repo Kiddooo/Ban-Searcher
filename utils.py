@@ -1,33 +1,59 @@
 import requests
 import re
 import traceback
-from tqdm import tqdm
 from bs4 import BeautifulSoup
 import json
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
 FLARESOLVER_URL = 'http://localhost:8191/v1'
 
+def load_external_urls():
+    try:
+        with open("websites.json", "r") as external_json_urls:
+            return json.load(external_json_urls)
+    except FileNotFoundError as e:
+        raise FileNotFoundError("Error: websites.json file not found.") from e
+    except json.JSONDecodeError as e:
+        raise json.JSONDecodeError("Error: websites.json is not a valid JSON file.") from e
+    except Exception as e:
+        raise Exception(f"Unexpected error: {e}") from e
+
+def generate_report(PLAYER_USERNAME, PLAYER_UUID_DASH, _bans):
+    ban_report = {
+        "username": PLAYER_USERNAME,
+        "uuid": PLAYER_UUID_DASH,
+        "bans": _bans,
+        "totalbans": len(_bans),
+        "skinurl": "",
+        "pastskins": ["", "", ""]
+    }
+    with open("SecretFrontend/bans.json", "w", encoding="utf-8") as bans_json:
+        json.dump(ban_report, bans_json, indent=4)
+    print("Report generated.")
+
+def validateUsername(Username: str) -> str:
+	try:
+		conversion = requests.get("https://api.mojang.com/users/profiles/minecraft/" + Username, timeout=5).json()
+		if conversion["id"]:
+			return True
+	except KeyError:
+		return 'Invalid Username'
 
 def UUIDToUsername(UUID: str) -> str:
 	try:
-		conversion = requests.get(
-			"https://sessionserver.mojang.com/session/minecraft/profile/acfcb375e3064acfae8741bccb609557"
-		).json()
+		conversion = requests.get("https://sessionserver.mojang.com/session/minecraft/profile/{UUID}", timeout=5).json()
 		return conversion["name"]
 
-	except Exception as e:
-		print(traceback.format_exc())
+	except KeyError:
+		print("DUN")
 
 
 def UsernameToUUID(Username: str) -> str:
 	try:
-		conversion = requests.get(
-			"https://api.mojang.com/users/profiles/minecraft/" + Username
-		).json()
+		conversion = requests.get("https://api.mojang.com/users/profiles/minecraft/" + Username, timeout=5).json()
 		return conversion["id"]
-	except Exception as e:
-		print(traceback.format_exc())
+	except KeyError:
+		return traceback.format_exc()
 
 
 def UUIDToUUIDDash(UUID: str) -> str:
@@ -60,7 +86,7 @@ def playerSkins(current=False, username=False, uuid=False): #username or uuid is
 		"maxTimeout": 60000
 	}
 
-	response = requests.post(FLARESOLVER_URL, data=json.dumps(data), headers=headers)
+	response = requests.post(FLARESOLVER_URL, data=json.dumps(data), headers=headers, timeout=60)
 	html = response.json().get('solution').get('response')
 	soup = BeautifulSoup(html, 'html.parser')
 	skins = soup.find_all('script', attrs={'defer': ''}, src=lambda x: "s.namemc.com/i/" in x if x else False)[:-1]

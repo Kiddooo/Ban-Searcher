@@ -1,5 +1,5 @@
 beautifulsoup4
 requests
 tldextract
-tqdm
+PyInquirer
 python-dateutil

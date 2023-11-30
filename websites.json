@@ -7,7 +7,6 @@
         "https://bans.truesmp.org/history.php?uuid=<UUID>",
         "https://www.roxbot.com/bans/history.php?uuid=<UUID>",
         "https://bans.unitedfactions.net/history.php?uuid=<UUID>",
-        "https://www.dwacraft.net/history.php?uuid=<UUID>",
         "https://ottercraft.net/LiteBans/history.php?uuid=<UUID>",
         "https://bans.purityvanilla.com/history.php?uuid=<UUID>",
         "https://litebans.shiuki.eu.org/minersleague/punishments/history.php?uuid=<UUID>",
@@ -26,7 +25,7 @@
         "https://www.karmacraft.es/Sanciones/history.php?uuid=<UUID>",
         "https://hydrapvp.it/bans/history.php?uuid=<UUID>",
         "http://www.dodedge.com/bans/history.php?uuid=<UUID>",
-        "https://bans.shadowraptor.net/bans/history.php?uuid=<UUID>",
+        "https://bans.shadowraptor.net/history.php?uuid=<UUID>",
         "https://bans.renatusnetwork.com/history.php?uuid=<UUID>",
         "https://www.myinstacraft.com/bans/history.php?uuid=<UUID>",
         "https://corn.gg/bans/history.php?uuid=<UUID>",
@@ -40,7 +39,9 @@
         "https://medievalpvp.net/bans/history.php?uuid=<UUID>",
         "http://www.pokerevolution.es/bans/history.php?uuid=<UUID>",
         "https://bans.pixelgaming.co/history.php?uuid=<UUID>",
-        "https://www.myinstacraft.com/bans/history.php?uuid=<UUID>"
+        "https://www.myinstacraft.com/bans/history.php?uuid=<UUID>",
+        "https://main.play.u3002.com/bans/history.php?uuid=<UUID>",
+        "https://rankku.motimaa.net/history/<UUID>/"
     ],
     "LITEBANS_UUID_DASH": [
         "http://264445_web.fakaheda.eu/history.php?uuid=<UUID-DASH>",
@@ -70,7 +71,8 @@
         "https://bans-api.cosmic.games/prisons/player/<USERNAME>"
     ],
     "STRONGCRAFT": [
-        "https://www.strongcraft.org/players/<USERNAME>/"
+        "https://www.strongcraft.org/players/<USERNAME>/",
+        "https://www.extremecraft.net/players/<USERNAME>/"
     ],
     "MANACUBE": [
         "https://bans.manacube.com/user?user=<USERNAME>#bans"
@@ -83,5 +85,26 @@
     ],
     "GUSTER": [
         "https://bans.guster.ro/api.php?type=player&player=<USERNAME>&page=1&perpage=25"
+    ],
+    "DEMOCRACYCRAFT": [
+        "https://www.democracycraft.net/logs/user/<USERNAME>"
+    ],
+    "SYUU": [
+        "https://www.syuu.net/user/<UUID-DASH>"
+    ],
+    "MAJNCRAFT": [
+        "https://server.majncraft.cz/player/<USERNAME>"
+    ],
+    "CULTCRAFT": [
+        "https://cultcraft.de/bannliste?player=<USERNAME>"
+    ],
+    "BANMANAGER": [
+        "http://mc.virtualgate.org/ban/index.php?action=viewplayer&player=<USERNAME>&server=0",
+        "https://woodymc.de/BanManager/index.php?action=viewplayer&player=<USERNAME>&server=0",
+        "https://bans.windmillgaming.net/index.php?action=searchplayer&server=0&player=<USERNAME>",
+        "https://bans.piratemc.com/index.php?action=viewplayer&player=<USERNAME>&server=0"
+    ],
+    "BANMANAGER_BONEMEAL": [
+        "https://mineyourmind.net/bans/index.php/players/<UUID>"
     ]
 }
