@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 from WebsiteBaseHandler import BaseHandler
 import tldextract
 
+from utils import get_language, translate
+
 class DemocracycraftHandler(BaseHandler):
     def parse_website_html(self, response_text, url):
         soup = BeautifulSoup(response_text, 'html.parser')
@@ -14,11 +16,11 @@ class DemocracycraftHandler(BaseHandler):
                 columns = row.find_all('td')[1:]
                 expires_date_object = 'Permanent' if columns[3].text.strip() == 'Never' else  int(datetime.strptime(columns[3].text.replace("st", "").replace("nd", "").replace("rd", "").replace("th", "").replace("Augu", "August"), "%m/%d/%Y %I:%M %p").timestamp())
                 ban_date_object = int(datetime.strptime(columns[2].text.replace("st", "").replace("nd", "").replace("rd", "").replace("th", "").replace("Augu", "August"), "%m/%d/%Y %I:%M %p").timestamp())
-
+                ban_reason = columns[1].text
                 ban = {
                     'source': tldextract.extract(url).domain,
                     'url': url,
-                    'reason': columns[1].text,
+                    'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
                     'date': ban_date_object,
                     'expires': expires_date_object
                 }

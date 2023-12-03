@@ -4,6 +4,8 @@ from WebsiteBaseHandler import BaseHandler
 import tldextract
 import urllib
 
+from utils import get_language, translate
+
 class SyuuHandler(BaseHandler):
     
     def handle_request(self, url):
@@ -28,10 +30,11 @@ class SyuuHandler(BaseHandler):
                         table2 = soup2.find('table', class_='table table-striped')
                         if table2 is not None:
                             row2 = table2.find_all('tr')[1:]
+                            ban_reason = row2[0].find_all('td')[1].text
                             ban = {
                                 'source': tldextract.extract(url).domain,
                                 'url': url,
-                                'reason': row2[0].find_all('td')[1].text,
+                                'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
                                 'date': int(datetime.strptime(row2[2].find_all('td')[1].text, '%Y-%m-%d %H:%M:%S %z').timestamp()),
                                 'expires': int(datetime.strptime(row2[3].find_all('td')[1].text, '%Y-%m-%d %H:%M:%S %z').timestamp())
                             }

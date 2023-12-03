@@ -1,5 +1,6 @@
 import tldextract
 from WebsiteBaseHandler import BaseHandler
+from utils import get_language, translate
 
 class MCOnlineHandler(BaseHandler):
     def parse_website_html(self, response_text, url):
@@ -10,7 +11,7 @@ class MCOnlineHandler(BaseHandler):
                 'source': tldextract.extract(url).domain,
                 'url': url,
                 'date': int(_ban[1]),
-                'reason': _ban[2],
+                'reason': translate(_ban[2]) if get_language(_ban[2]) != 'en' else _ban[2],
                 'expires': 'N/A'
             }
             bans.append(ban)

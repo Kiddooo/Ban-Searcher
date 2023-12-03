@@ -8,6 +8,7 @@ import tldextract
 import json
 import datetime
 from WebsiteBaseHandler import BaseHandler
+from utils import get_language, translate
 
 DATE_FORMAT_LITEBANS = "%B %d, %Y, %H:%M"
 
@@ -32,26 +33,52 @@ class LiteBansHandler(BaseHandler):
             logging.error(f"Exception occurred: {traceback.format_exc()}, URL: {url}")
 
     def generate_ban(self, columns, url):
-        ban_expiry = columns[5].text.split("(")[0].strip()
+        special_websites = ['astrocraft', 'baconetworks']
+        if any(website in url for website in special_websites):
+            print(special_websites)
+            ban_expiry_index = 5
+        else:
+            ban_expiry_index = 6 if len(columns) == 7 else 5 if len(columns) == 6 else 4
+        ban_date_index = 4 if len(columns) == 6 else 3
+        ban_reason_index = 3 if len(columns) == 7 else 2 if len(columns) == 5 else 3
 
+        try:
+            ban_expiry = columns[ban_expiry_index].text.split("(")[0].strip()
+        except IndexError:
+            ban_expiry = columns[ban_expiry_index].text.split("(")[0].strip()
+        ban_expiry = ban_expiry.replace("klo", "").replace("(Expired)", "").replace("(Unbanned)", "").strip()
         if ban_expiry in ("Permanent Ban", "Permanentni", "Ban Permanente"):
             ban_expires = "Permanent"
         else:
             try:
                 ban_expires = int(datetime.datetime.strptime(ban_expiry, DATE_FORMAT_LITEBANS).timestamp())
             except ValueError:
-                ban_expiry = ban_expiry.replace("klo", "")
-                ban_expires = int(datetime.datetime.strptime(ban_expiry, '%d.%m.%Y %H:%M').timestamp())
+                try:
+                    ban_expires = int(datetime.datetime.strptime(ban_expiry, '%d.%m.%Y %H:%M').timestamp())
+                except ValueError:
+                    try:
+                        ban_expires = int(datetime.datetime.strptime(ban_expiry, '%B %d, %Y, %H:%M').timestamp())
+                    except ValueError:
+                        ban_expires = 'N/A'
 
+        ban_date_text = self.translate_month(columns[ban_date_index].text.replace("klo", "").replace("(Expired)", "").replace("(Unbanned)", "").strip())
         try:
-            ban_date = int(datetime.datetime.strptime(columns[4].text, DATE_FORMAT_LITEBANS).timestamp())
+            ban_date = int(datetime.datetime.strptime(ban_date_text, DATE_FORMAT_LITEBANS).timestamp())
         except ValueError:
-            ban_date = int(datetime.datetime.strptime(columns[4].text.replace("klo", ""), '%d.%m.%Y %H:%M').timestamp())
+            ban_date_text = columns[4].text.replace("klo", "").replace("(Expired)", "").replace("(Unbanned)", "").strip()
+            try:
+                ban_date = int(datetime.datetime.strptime(ban_date_text, '%d.%m.%Y %H:%M').timestamp())
+            except ValueError:
+                try:
+                    ban_date = int(datetime.datetime.strptime(ban_date_text, '%B %d, %Y, %H:%M').timestamp())
+                except ValueError as e:
+                    raise ValueError(f"Error parsing ban date: {ban_date_text}") from e
 
+        ban_reason = columns[ban_reason_index].text
         ban = {
             'source': tldextract.extract(url).domain,
             'url': url,
-            'reason': columns[3].text,
+            'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
             'date': ban_date,
             'expires': ban_expires
         }
@@ -91,7 +118,7 @@ class LiteBansHandler(BaseHandler):
                     if next_page is None:
                         break
                 response = requests.get(urllib.parse.urljoin(url, next_page['href']), timeout=60)
-                soup = BeautifulSoup(response.text(), 'html.parser')
+                soup = BeautifulSoup(response.text, 'html.parser')
             except AttributeError:
                 # logging.error(f"AttributeError occurred: {url}", traceback.format_exc())
                 break
@@ -116,10 +143,11 @@ class LiteBansHandler(BaseHandler):
                     for col in columns:
                         span = col.find('span', class_='label label-ban')
                         if span:
+                            ban_reason = columns[3].text
                             ban = {
                                 'source': tldextract.extract(url).domain,
                                 'url': url,
-                                'reason': columns[3].text,
+                                'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
                                 'date': int(datetime.datetime.strptime(columns[4].text.replace("AM", "").replace("PM", "").strip(), DATE_FORMAT_LITEBANS).timestamp()),
                                 'expires': "Permanent" if "Permanent Ban" in columns[5].text else int(datetime.datetime.strptime(columns[4].text.replace("AM", "").replace("PM", "").strip(), DATE_FORMAT_LITEBANS).timestamp())
                             }
@@ -143,3 +171,22 @@ class LiteBansHandler(BaseHandler):
                 break
 
         return bans
+
+    def translate_month(self, date_string):
+        spanish_to_english = {
+            'enero': 'January',
+            'febrero': 'February',
+            'marzo': 'March',
+            'abril': 'April',
+            'mayo': 'May',
+            'junio': 'June',
+            'julio': 'July',
+            'agosto': 'August',
+            'septiembre': 'September',
+            'octubre': 'October',
+            'noviembre': 'November',
+            'diciembre': 'December'
+        }
+        for spanish, english in spanish_to_english.items():
+            date_string = date_string.replace(spanish, english)
+        return date_string

@@ -3,3 +3,5 @@ requests
 tldextract
 PyInquirer
 python-dateutil
+deep-translator
+python-dotenv

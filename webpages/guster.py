@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from WebsiteBaseHandler import BaseHandler
-from utils import USER_AGENT
+from utils import USER_AGENT, get_language, translate
 from urllib.parse import urlparse
 from datetime import datetime
 import json
@@ -22,7 +22,7 @@ class GusterHandler(BaseHandler):
         bans = [
         {
             'source': urlparse(url).hostname,
-            'reason': ban['reason'],
+            'reason': translate(ban['reason']) if get_language(ban['reason']) != 'en' else ban['reason'],
             'url': url,
             'date': int(datetime.strptime(BeautifulSoup(ban['date'], 'html.parser').text, "%H:%M:%S %d.%m.%Y").timestamp()),
             'expires': 'Permanant' if 'Never' in ban['expire'] else 'N/A' if 'Expired' in ban['expire'] else int(datetime.strptime(BeautifulSoup(ban['expire'], 'html.parser').text, "%H:%M:%S %d.%m.%Y").timestamp())

@@ -5,6 +5,8 @@ import tldextract
 import datetime
 import requests
 
+from utils import get_language, translate
+
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 class MCBansHandler(BaseHandler):
@@ -21,10 +23,11 @@ class MCBansHandler(BaseHandler):
             if table is not None:
                 for row in table.find_all('tr')[1:-1]: # Skip the header row
                     columns = row.find_all('td')[:-1]
+                    ban_reason = columns[4].text
                     ban = {
                         'source': tldextract.extract(url).domain,
                         'url': url,
-                        'reason': columns[4].text,
+                        'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
                         'date': int(datetime.datetime.strptime(columns[5].text, DATE_FORMAT).timestamp()),
                         'expires': 'N/A'
                     }

@@ -1,110 +1,96 @@
 {
-    "LITEBANS": [
-        "https://hearthcraft.net/bans/history.php?uuid=<UUID>",
-        "https://www.kingscraft.co.uk/bans/history.php?uuid=<UUID>",
-        "https://minecraft-romania.ro/sanctiuni/history.php?uuid=<UUID>",
-        "https://bans.skyversecraft.eu/history.php?uuid=<UUID>",
-        "https://bans.truesmp.org/history.php?uuid=<UUID>",
-        "https://www.roxbot.com/bans/history.php?uuid=<UUID>",
-        "https://bans.unitedfactions.net/history.php?uuid=<UUID>",
-        "https://ottercraft.net/LiteBans/history.php?uuid=<UUID>",
-        "https://bans.purityvanilla.com/history.php?uuid=<UUID>",
-        "https://litebans.shiuki.eu.org/minersleague/punishments/history.php?uuid=<UUID>",
-        "https://minecochia.net/bans/history.php?uuid=<UUID>",
-        "https://bans.dragonstone.pw/history.php?uuid=<UUID>",
-        "https://alttd.com/bans/history?uuid=<UUID>",
-        "https://nd2.worldofkeralis.com/bans/history.php?uuid=<UUID>",
-        "https://www.hoobs.live/minecraft/bans/history.php?uuid=<UUID>",
-        "https://dankprison.com/bans/history.php?uuid=<UUID>",
-        "https://nytro.co/bans/history.php?uuid=<UUID>",
-        "https://bans.skykingdoms.net/history.php?uuid=<UUID>",
-        "https://siphonmc.com/bans/history/<UUID>",
-        "https://bans.dogecraft.net/history.php?uuid=<UUID>",
-        "https://differentcraft.net/bans/history.php?uuid=<UUID>",
-        "https://www.mooncraft.es/bans/history.php?uuid=<UUID>",
-        "https://www.karmacraft.es/Sanciones/history.php?uuid=<UUID>",
-        "https://hydrapvp.it/bans/history.php?uuid=<UUID>",
-        "http://www.dodedge.com/bans/history.php?uuid=<UUID>",
-        "https://bans.shadowraptor.net/history.php?uuid=<UUID>",
-        "https://bans.renatusnetwork.com/history.php?uuid=<UUID>",
-        "https://www.myinstacraft.com/bans/history.php?uuid=<UUID>",
-        "https://corn.gg/bans/history.php?uuid=<UUID>",
-        "https://bans.neocubest.com/history?uuid=<UUID>",
-        "https://justleader.net/tresty/history/<UUID>/",
-        "https://bans.horizonsend.net/history.php?uuid=<UUID>",
-        "https://bans.gp-mc.net/history.php?uuid=<UUID>",
-        "https://www.pickaxemania.com/playerstatus/history.php?uuid=<UUID>",
-        "https://minedhype.com/bans/history.php?uuid=<UUID>",
-        "https://opblocks.com/bans/history.php?uuid=<UUID>",
-        "https://medievalpvp.net/bans/history.php?uuid=<UUID>",
-        "http://www.pokerevolution.es/bans/history.php?uuid=<UUID>",
-        "https://bans.pixelgaming.co/history.php?uuid=<UUID>",
-        "https://www.myinstacraft.com/bans/history.php?uuid=<UUID>",
-        "https://main.play.u3002.com/bans/history.php?uuid=<UUID>",
-        "https://rankku.motimaa.net/history/<UUID>/"
-    ],
-    "LITEBANS_UUID_DASH": [
-        "http://264445_web.fakaheda.eu/history.php?uuid=<UUID-DASH>",
-        "http://eventyrcraft.net/ban/history.php?uuid=<UUID-DASH>",
-        "https://minecraft.rtgame.co.uk/bans/history.php?uuid=<UUID-DASH>",
-        "https://saicopvp.com/bans/history.php?uuid=<UUID-DASH>"
-    ],
-    "MCBOUNCER": [
-        "https://mcbouncer.com/u/<UUID>/bansFor"
-    ],
-    "MCBANS": [
-        "https://www.mcbans.com/player/<UUID>"
-    ],
-    "MCONLINE": [
-        "https://minecraftonline.com/cgi-bin/getplayerinfo?<USERNAME>"
-    ],
-    "JOHNYMUFFIN": [
-        "https://bans.johnymuffin.com/user/<UUID-DASH>"
-    ],
-    "MCCENTRAL": [
-        "https://mccentral.org/punishments/resources/api/bans.php?uuid=<UUID>"
-    ],
-    "MCBRAWL": [
-        "https://www.mcbrawl.com/history/player/<USERNAME>"
-    ],
-    "COSMICPRISON": [
-        "https://bans-api.cosmic.games/prisons/player/<USERNAME>"
-    ],
-    "STRONGCRAFT": [
-        "https://www.strongcraft.org/players/<USERNAME>/",
-        "https://www.extremecraft.net/players/<USERNAME>/"
-    ],
-    "MANACUBE": [
-        "https://bans.manacube.com/user?user=<USERNAME>#bans"
-    ],
-    "SNAPCRAFT": [
-        "https://snapcraft.net/bans/search/<USERNAME>/?filter=bans"
-    ],
-    "CUBEVILLE": [
-        "https://www.cubeville.org/cv-site/banlist.php?username=<USERNAME>"
-    ],
-    "GUSTER": [
-        "https://bans.guster.ro/api.php?type=player&player=<USERNAME>&page=1&perpage=25"
-    ],
-    "DEMOCRACYCRAFT": [
-        "https://www.democracycraft.net/logs/user/<USERNAME>"
-    ],
-    "SYUU": [
-        "https://www.syuu.net/user/<UUID-DASH>"
-    ],
-    "MAJNCRAFT": [
-        "https://server.majncraft.cz/player/<USERNAME>"
-    ],
-    "CULTCRAFT": [
-        "https://cultcraft.de/bannliste?player=<USERNAME>"
-    ],
-    "BANMANAGER": [
-        "http://mc.virtualgate.org/ban/index.php?action=viewplayer&player=<USERNAME>&server=0",
-        "https://woodymc.de/BanManager/index.php?action=viewplayer&player=<USERNAME>&server=0",
-        "https://bans.windmillgaming.net/index.php?action=searchplayer&server=0&player=<USERNAME>",
-        "https://bans.piratemc.com/index.php?action=viewplayer&player=<USERNAME>&server=0"
-    ],
-    "BANMANAGER_BONEMEAL": [
-        "https://mineyourmind.net/bans/index.php/players/<UUID>"
-    ]
+  "LITEBANS": [
+    "https://hearthcraft.net/bans/history.php?uuid=<UUID>",
+    "https://www.kingscraft.co.uk/bans/history.php?uuid=<UUID>",
+    "https://minecraft-romania.ro/sanctiuni/history.php?uuid=<UUID>",
+    "https://bans.skyversecraft.eu/history.php?uuid=<UUID>",
+    "https://bans.truesmp.org/history.php?uuid=<UUID>",
+    "https://www.roxbot.com/bans/history.php?uuid=<UUID>",
+    "https://bans.unitedfactions.net/history.php?uuid=<UUID>",
+    "https://ottercraft.net/LiteBans/history.php?uuid=<UUID>",
+    "https://bans.purityvanilla.com/history.php?uuid=<UUID>",
+    "https://litebans.shiuki.eu.org/minersleague/punishments/history.php?uuid=<UUID>",
+    "https://minecochia.net/bans/history.php?uuid=<UUID>",
+    "https://bans.dragonstone.pw/history.php?uuid=<UUID>",
+    "https://alttd.com/bans/history?uuid=<UUID>",
+    "https://nd2.worldofkeralis.com/bans/history.php?uuid=<UUID>",
+    "https://www.hoobs.live/minecraft/bans/history.php?uuid=<UUID>",
+    "https://dankprison.com/bans/history.php?uuid=<UUID>",
+    "https://nytro.co/bans/history.php?uuid=<UUID>",
+    "https://bans.skykingdoms.net/history.php?uuid=<UUID>",
+    "https://siphonmc.com/bans/history/<UUID>",
+    "https://bans.dogecraft.net/history.php?uuid=<UUID>",
+    "https://differentcraft.net/bans/history.php?uuid=<UUID>",
+    "https://www.mooncraft.es/bans/history.php?uuid=<UUID>",
+    "https://www.karmacraft.es/Sanciones/history.php?uuid=<UUID>",
+    "https://hydrapvp.it/bans/history.php?uuid=<UUID>",
+    "http://www.dodedge.com/bans/history.php?uuid=<UUID>",
+    "https://bans.shadowraptor.net/history.php?uuid=<UUID>",
+    "https://bans.renatusnetwork.com/history.php?uuid=<UUID>",
+    "https://www.myinstacraft.com/bans/history.php?uuid=<UUID>",
+    "https://corn.gg/bans/history.php?uuid=<UUID>",
+    "https://bans.neocubest.com/history?uuid=<UUID>",
+    "https://justleader.net/tresty/history/<UUID>/",
+    "https://bans.horizonsend.net/history.php?uuid=<UUID>",
+    "https://bans.gp-mc.net/history.php?uuid=<UUID>",
+    "https://www.pickaxemania.com/playerstatus/history.php?uuid=<UUID>",
+    "https://minedhype.com/bans/history.php?uuid=<UUID>",
+    "https://opblocks.com/bans/history.php?uuid=<UUID>",
+    "https://medievalpvp.net/bans/history.php?uuid=<UUID>",
+    "http://www.pokerevolution.es/bans/history.php?uuid=<UUID>",
+    "https://bans.pixelgaming.co/history.php?uuid=<UUID>",
+    "https://www.myinstacraft.com/bans/history.php?uuid=<UUID>",
+    "https://main.play.u3002.com/bans/history.php?uuid=<UUID>",
+    "https://rankku.motimaa.net/history/<UUID>/",
+    "https://advanciuspunishments.website/history.php?uuid=<UUID>",
+    "https://bans.yesssirbox.xyz/history.php?uuid=<UUID>",
+    "https://site.cynagen.xyz/bans/history.php?uuid=<UUID>",
+    "https://bans.g4meworld.net/history.php?uuid=<UUID>",
+    "https://atomicnetwork.eu/bans/history.php?uuid=<UUID>",
+    "http://prestigebans.xyz/history.php?uuid=<UUID>",
+    "https://lostgamers.eu/punishments/history.php?uuid=<UUID>",
+    "https://bans.siriusmc.net/history.php?uuid=<UUID>",
+    "https://bluecraft.dk/bans/history.php?uuid=<UUID>",
+    "https://wickedworlds.ca/bans/history.php?uuid=<UUID>",
+    "https://punishments.direskies.net/history.php?uuid=<UUID>",
+    "https://build.mcmiddleearth.com/bans/history.php?uuid=<UUID>",
+    "http://diemeesmcbans.nl/bans/history.php?uuid=<UUID>",
+    "https://bridger.land/bans/history.php?uuid=<UUID>",
+    "https://ban.laborcraft.net/history.php?uuid=<UUID>",
+    "https://www.paladia.net/history.php?uuid=<UUID>",
+    "https://bans.secure-heaven.com/history.php?uuid=<UUID>",
+    "https://infracciones.acropolis-mc.com/history.php?uuid=<UUID>"
+  ],
+  "LITEBANS_UUID_DASH": [
+    "http://264445_web.fakaheda.eu/history.php?uuid=<UUID-DASH>",
+    "http://eventyrcraft.net/ban/history.php?uuid=<UUID-DASH>",
+    "https://minecraft.rtgame.co.uk/bans/history.php?uuid=<UUID-DASH>",
+    "https://saicopvp.com/bans/history.php?uuid=<UUID-DASH>",
+    "https://bans.astrocraft.org/history.php?uuid=<UUID-DASH>",
+    "https://punishments.baconetworks.com/history?uuid=<UUID-DASH>",
+    "https://play.hellominers.com/bans/history.php?uuid=<UUID-DASH>"
+  ],
+  "MCBOUNCER": ["https://mcbouncer.com/u/<UUID>/bansFor"],
+  "MCBANS": ["https://www.mcbans.com/player/<UUID>"],
+  "MCONLINE": ["https://minecraftonline.com/cgi-bin/getplayerinfo?<USERNAME>"],
+  "JOHNYMUFFIN": ["https://bans.johnymuffin.com/user/<UUID-DASH>"],
+  "MCCENTRAL": ["https://mccentral.org/punishments/resources/api/bans.php?uuid=<UUID>"],
+  "MCBRAWL": ["https://www.mcbrawl.com/history/player/<USERNAME>"],
+  "COSMICPRISON": ["https://bans-api.cosmic.games/prisons/player/<USERNAME>"],
+  "STRONGCRAFT": ["https://www.strongcraft.org/players/<USERNAME>/", "https://www.extremecraft.net/players/<USERNAME>/"],
+  "MANACUBE": ["https://bans.manacube.com/user?user=<USERNAME>#bans"],
+  "SNAPCRAFT": ["https://snapcraft.net/bans/search/<USERNAME>/?filter=bans", "https://www.mcfoxcraft.com/bans/search/<USERNAME>/?filter=bans"],
+  "CUBEVILLE": ["https://www.cubeville.org/cv-site/banlist.php?username=<USERNAME>"],
+  "GUSTER": ["https://bans.guster.ro/api.php?type=player&player=<USERNAME>&page=1&perpage=25"],
+  "DEMOCRACYCRAFT": ["https://www.democracycraft.net/logs/user/<USERNAME>"],
+  "SYUU": ["https://www.syuu.net/user/<UUID-DASH>"],
+  "MAJNCRAFT": ["https://server.majncraft.cz/player/<USERNAME>"],
+  "CULTCRAFT": ["https://cultcraft.de/bannliste?player=<USERNAME>"],
+  "BANMANAGER": [
+    "http://mc.virtualgate.org/ban/index.php?action=viewplayer&player=<USERNAME>&server=0",
+    "https://woodymc.de/BanManager/index.php?action=viewplayer&player=<USERNAME>&server=0",
+    "https://bans.windmillgaming.net/index.php?action=searchplayer&server=0&player=<USERNAME>",
+    "https://bans.piratemc.com/index.php?action=viewplayer&player=<USERNAME>&server=0"
+  ],
+  "BANMANAGER_BONEMEAL": ["https://mineyourmind.net/bans/index.php/players/<UUID>"]
 }

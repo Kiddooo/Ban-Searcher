@@ -40,7 +40,7 @@ def main(PLAYER_USERNAME, PLAYER_UUID, PLAYER_UUID_DASH):
         'MAJNCRAFT': (webpages.MajncraftHandler, CONSTANT_USERNAME, PLAYER_USERNAME),
         'CULTCRAFT': (webpages.CultcraftHandler, CONSTANT_USERNAME, PLAYER_USERNAME),
         'BANMANAGER': (webpages.BanManagerHandler, CONSTANT_USERNAME, PLAYER_USERNAME),
-        'BANMANAGER_BONEMEAL': (webpages.BanManagerBonemealHandler, CONSTANT_UUID, PLAYER_UUID),
+        'BANMANAGER_BONEMEAL': (webpages.BanManagerBonemealHandler, CONSTANT_UUID, PLAYER_UUID)
     }
 
     start_time = time.time()
@@ -51,6 +51,8 @@ def main(PLAYER_USERNAME, PLAYER_UUID, PLAYER_UUID_DASH):
             url = url.replace(replacement, value)
             handler = HandlerClass()
             tasks.append((handler.handle_request, url))
+
+    print(f"Searching {len(tasks)} URLs for bans...")
 
     futures_to_urls = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
@@ -72,7 +74,7 @@ def main(PLAYER_USERNAME, PLAYER_UUID, PLAYER_UUID_DASH):
     os.chdir("SecretFrontend")
     p = subprocess.Popen([sys.executable, "-m", "http.server", "--bind", "127.0.0.1", "8000"], stdout=subprocess.PIPE) # nosec
     webbrowser.open("http://127.0.0.1:8000/index.html", new=2, autoraise=True)
-    time.sleep(1)
+    time.sleep(5)
     p.kill()
 
 
@@ -81,9 +83,7 @@ if __name__ == "__main__":
         subprocess.run('cls', shell=True, check=True)  # nosec
     else:
         subprocess.run('clear', shell=True, check=True)  # nosec
-    PLAYER_USERNAME = prompt(
-        [{'type': 'input', 'name': 'username', 'message': 'Enter a username: ', 'validate': utils.validateUsername}])[
-        "username"]
+    PLAYER_USERNAME = prompt([{'type': 'input', 'name': 'username', 'message': 'Enter a username: ', 'validate': utils.validateUsername}])["username"]
     PLAYER_UUID = utils.UsernameToUUID(PLAYER_USERNAME)
     PLAYER_UUID_DASH = utils.UUIDToUUIDDash(PLAYER_UUID)
     main(PLAYER_USERNAME, PLAYER_UUID, PLAYER_UUID_DASH)

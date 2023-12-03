@@ -1,7 +1,10 @@
+# trunk-ignore-all(black)
 
 from bs4 import BeautifulSoup
 from WebsiteBaseHandler import BaseHandler
 import tldextract
+
+from utils import get_language, translate
 
 
 class CultcraftHandler(BaseHandler):
@@ -16,11 +19,11 @@ class CultcraftHandler(BaseHandler):
                 columns = row.find_all('td')[1:]
                 expires_date_object = 'Permanent' if columns[3].text.strip() == 'Permaban' else columns[3].text
                 ban_date_object = 'N/A' if columns[2].text.strip() == 'Permanent (für immer)' else columns[2].text
-
+                ban_reason = columns[0].text
                 ban = {
                     'source': tldextract.extract(url).domain,
                     'url': url,
-                    'reason': columns[0].text,
+                    'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
                     'date': ban_date_object,
                     'expires': expires_date_object
                 }

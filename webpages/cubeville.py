@@ -4,6 +4,7 @@ import tldextract
 from bs4 import BeautifulSoup
 
 from WebsiteBaseHandler import BaseHandler
+from utils import get_language, translate
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -36,11 +37,11 @@ class CubevilleHandler(BaseHandler):
                             ban_expires = datetime.datetime.strptime(
                                 columns[1].text, DATE_FORMAT
                             ) + datetime.timedelta(**{time_units[unit]: expire_amount})
-
+                ban_reason = columns[2].text
                 ban = {
                     "source": tldextract.extract(url).domain,
                     "url": url,
-                    "reason": columns[2].text,
+                    "reason": translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
                     "date": int(
                         datetime.datetime.strptime(
                             columns[1].text, DATE_FORMAT

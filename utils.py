@@ -3,9 +3,22 @@ import re
 import traceback
 from bs4 import BeautifulSoup
 import json
+import os
+from deep_translator import GoogleTranslator, single_detection
+from dotenv import load_dotenv
 
+load_dotenv()
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
 FLARESOLVER_URL = 'http://localhost:8191/v1'
+DETECTLANGUAGE_API_KEY = os.getenv('DETECTLANGUAGE_API_KEY')
+
+def get_language(text: str) -> str:
+    lang = single_detection(text, api_key=DETECTLANGUAGE_API_KEY)
+    return lang
+
+def translate(text: str, from_lang = 'auto', to_lang = 'en') -> str:
+    translated = GoogleTranslator(source=from_lang, target=to_lang).translate(text)
+    return translated
 
 def load_external_urls():
     try:

@@ -4,6 +4,8 @@ import tldextract
 from datetime import date, timedelta, datetime
 import re
 
+from utils import get_language, translate
+
 class StrongcraftHandler(BaseHandler):
     def parse_website_html(self, response_text, url):
         soup = BeautifulSoup(response_text, 'html.parser')
@@ -35,11 +37,11 @@ class StrongcraftHandler(BaseHandler):
                         )
 
                         date_object = datetime.combine(date.today() - time_duration, datetime.min.time())
-
+                        ban_reason = row.text.split("(")[1].split(")")[0]
                         ban = {
                             'source': tldextract.extract(url).domain,
                             'url': url,
-                            'reason': row.text.split("(")[1].split(")")[0],
+                            'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
                             'date': int(date_object.timestamp()),
                             'expires':"Permanent" if row.text.split(",")[1].strip() == "ban is permanent." else row.text.split(",")[1].strip()
 

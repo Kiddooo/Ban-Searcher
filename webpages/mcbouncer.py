@@ -5,6 +5,7 @@ import tldextract
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from WebsiteBaseHandler import BaseHandler
+from utils import get_language, translate
 
 class MCBouncerHandler(BaseHandler):
     def parse_website_html(self, response_text, url):
@@ -22,11 +23,11 @@ class MCBouncerHandler(BaseHandler):
                     website_ban_date_months = columns[2].text.replace("\xa0", "", ).split("month")[0].split(",")[1].replace("ago", "").strip()
                     now = date.today()
                     ban_date = datetime.combine(now - relativedelta(years=int(website_ban_date_years), months=int(website_ban_date_months)), datetime.min.time())
-
+                    ban_reason = columns[1].text
                     ban = {
                         'source': tldextract.extract(url).domain,
                         'url': url,
-                        'reason': columns[1].text,
+                        'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
                         'date': int(ban_date.timestamp()),
                         'expires': 'N/A'
                     }

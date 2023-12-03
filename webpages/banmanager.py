@@ -6,6 +6,8 @@ import tldextract
 import re
 import time
 
+from utils import get_language, translate
+
 class BanManagerHandler(BaseHandler):
     def parse_website_html(self, response_text, url):
         soup = BeautifulSoup(response_text, 'html.parser')
@@ -39,10 +41,11 @@ class BanManagerHandler(BaseHandler):
                 for row in previous_bans_table.find_all('tr')[1:]:  # Skip the header row
                     columns = row.find_all('td')
                     if len(columns) >= 7:  # Ensure there are at least 7 columns
+                        ban_reason = columns[1].text
                         bans.append({
                             'source': tldextract.extract(url).domain,
                             'url': url,
-                            'reason': columns[1].text,
+                            'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
                             'date': int(datetime.strptime(columns[3].text, '%H:%M:%S %d/%m/%y').timestamp()),
                             'expires': int(datetime.strptime(columns[6].text, '%H:%M:%S %d/%m/%y').timestamp())
                         })

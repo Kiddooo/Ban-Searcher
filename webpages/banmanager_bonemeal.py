@@ -4,6 +4,8 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import re
 
+from utils import get_language, translate
+
 
 class BanManagerBonemealHandler(BaseHandler):
     def parse_website_html(self, response_text, url):
@@ -25,7 +27,6 @@ class BanManagerBonemealHandler(BaseHandler):
 
             # Get ban details
             ban_reason = item.find('div', class_='timeline-body').get_text().split("\n")[1].strip().split(":")[1].strip()
-            
             # Get ban date
             ban_date_str = soup.find('small', class_='text-muted')['title']
             ban_date = datetime.strptime(ban_date_str, "%Y-%m-%d %H:%M:%S")
@@ -65,7 +66,7 @@ class BanManagerBonemealHandler(BaseHandler):
             else:
                 ban_end_timestamp = 'N/A'
             
-            ban['reason'] = ban_reason
+            ban['reason'] = translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason
             ban['timestamp'] = ban_start_timestamp
             ban['expire'] = ban_end_timestamp
 

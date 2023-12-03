@@ -3,6 +3,8 @@ from WebsiteBaseHandler import BaseHandler
 import tldextract
 import datetime
 
+from utils import get_language, translate
+
 PLAYER_DOESNT_EXIST = "Player doesn't exist"
 NO_BANS = "No bans have been filed."
 NO_PERM_BANS = "No permanent bans have been filed."
@@ -25,10 +27,11 @@ class MCBrawlHandler(BaseHandler):
                 if table is not None:
                     for row in table.find_all('tr')[1:]: # Skip the header row
                         columns = row.find_all('td')
+                        ban_reason = columns[0].text
                         ban = {
                             'source': tldextract.extract(url).domain,
                             'url': url,
-                            'reason': columns[0].text,
+                            'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
                             'date': int(datetime.datetime.strptime(columns[1].text, "%Y-%m-%d %H:%M:%S").timestamp()),
                             'expires': 'N/A' if columns[2].text == "" else int(datetime.datetime.strptime(columns[2].text, "%Y-%m-%d %H:%M:%S").timestamp()),
                         }
