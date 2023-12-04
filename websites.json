@@ -59,7 +59,14 @@
     "https://ban.laborcraft.net/history.php?uuid=<UUID>",
     "https://www.paladia.net/history.php?uuid=<UUID>",
     "https://bans.secure-heaven.com/history.php?uuid=<UUID>",
-    "https://infracciones.acropolis-mc.com/history.php?uuid=<UUID>"
+    "https://infracciones.acropolis-mc.com/history.php?uuid=<UUID>",
+    "https://bluecraft.dk/bans/history.php?uuid=<UUID>",
+    "https://www.airidale.net/bans/history.php?uuid=<UUID>",
+    "https://www.minelife.eu/bans/history.php?uuid=<UUID>",
+    "https://bans.truesurvival.org/history.php?uuid=<UUID>",
+    "https://bans.kiwismp.fun/history.php?uuid=<UUID>",
+    "https://bans.hublolland.dk/history.php?uuid=<UUID>",
+    "https://banlog.mythictales.it/history.php?uuid=<UUID>"
   ],
   "LITEBANS_UUID_DASH": [
     "http://264445_web.fakaheda.eu/history.php?uuid=<UUID-DASH>",
@@ -92,5 +99,6 @@
     "https://bans.windmillgaming.net/index.php?action=searchplayer&server=0&player=<USERNAME>",
     "https://bans.piratemc.com/index.php?action=viewplayer&player=<USERNAME>&server=0"
   ],
-  "BANMANAGER_BONEMEAL": ["https://mineyourmind.net/bans/index.php/players/<UUID>"]
+  "BANMANAGER_BONEMEAL": ["https://mineyourmind.net/bans/index.php/players/<UUID>"],
+  "MUNDOMINECRAFT": ["http://mundo-minecraft.com:3000/player/<UUID-DASH>"]
 }

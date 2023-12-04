@@ -40,7 +40,8 @@ def main(PLAYER_USERNAME, PLAYER_UUID, PLAYER_UUID_DASH):
         'MAJNCRAFT': (webpages.MajncraftHandler, CONSTANT_USERNAME, PLAYER_USERNAME),
         'CULTCRAFT': (webpages.CultcraftHandler, CONSTANT_USERNAME, PLAYER_USERNAME),
         'BANMANAGER': (webpages.BanManagerHandler, CONSTANT_USERNAME, PLAYER_USERNAME),
-        'BANMANAGER_BONEMEAL': (webpages.BanManagerBonemealHandler, CONSTANT_UUID, PLAYER_UUID)
+        'BANMANAGER_BONEMEAL': (webpages.BanManagerBonemealHandler, CONSTANT_UUID, PLAYER_UUID),
+        'MUNDOMINECRAFT': (webpages.MundoMinecraftHandler, CONSTANT_UUID_DASH, PLAYER_UUID_DASH),
     }
 
     start_time = time.time()
