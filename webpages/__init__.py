@@ -17,7 +17,7 @@ from webpages.mconline import MCOnlineHandler
 from webpages.snapcraft import SnapcraftHandler
 from webpages.strongcraft import StrongcraftHandler
 from webpages.syuu import SyuuHandler
-from mundominecraft import MundoMinecraftHandler
+from webpages.mundominecraft import MundoMinecraftHandler
 
 __all__ = [
     "CosmicGamesHandler",
