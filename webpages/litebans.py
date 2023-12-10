@@ -56,9 +56,6 @@ class LiteBansHandler(BaseHandler):
                 try:
                     ban_expires = int(datetime.datetime.strptime(ban_expiry, '%d.%m.%Y %H:%M').timestamp())
                 except ValueError:
-                    try:
-                        ban_expires = int(datetime.datetime.strptime(ban_expiry, '%B %d, %Y, %H:%M').timestamp())
-                    except ValueError:
                         ban_expires = 'N/A'
 
         ban_date_text = self.translate_month(columns[ban_date_index].text.replace("klo", "").replace("(Expired)", "").replace("(Unbanned)", "").strip())
@@ -68,10 +65,7 @@ class LiteBansHandler(BaseHandler):
             ban_date_text = columns[4].text.replace("klo", "").replace("(Expired)", "").replace("(Unbanned)", "").strip()
             try:
                 ban_date = int(datetime.datetime.strptime(ban_date_text, '%d.%m.%Y %H:%M').timestamp())
-            except ValueError:
-                try:
-                    ban_date = int(datetime.datetime.strptime(ban_date_text, '%B %d, %Y, %H:%M').timestamp())
-                except ValueError as e:
+            except ValueError as e:
                     raise ValueError(f"Error parsing ban date: {ban_date_text}") from e
 
         ban_reason = columns[ban_reason_index].text

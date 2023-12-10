@@ -56,7 +56,6 @@ class BanManagerBonemealHandler(BaseHandler):
                         ban_end_date = ban_date + relativedelta(months=number)
                     elif unit == 'years':
                         ban_end_date = ban_date + relativedelta(years=number)
-                    # Add more conditions here if there are other possible units
 
                     # Convert the ban end date to a Unix timestamp
                     ban_end_timestamp = int(ban_end_date.timestamp())
