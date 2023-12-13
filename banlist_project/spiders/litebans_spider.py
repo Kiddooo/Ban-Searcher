@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup
 import urllib.parse
 import re
 import tldextract
-from datetime import datetime
 from utils import get_language, translate
 
 class LiteBansSpider(scrapy.Spider):
@@ -261,7 +260,7 @@ class LiteBansSpider(scrapy.Spider):
         }
         
         for key, value in translations.items():
-            for lang, terms in value.items():
+            for _lang, terms in value.items():
                 if header in terms:
                     return key
         

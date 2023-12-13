@@ -2,10 +2,12 @@ import dateparser
 import scrapy
 from banlist_project.items import BanItem
 from bs4 import BeautifulSoup
-from utils import USER_AGENT, get_language, translate
+from utils import get_language, translate
 from urllib.parse import urlparse
-from datetime import datetime
 import json
+
+# Constants
+BASE_URL = "https://bans.guster.ro/api.php?type=player&player={}&page={}&perpage=25"
 
 class GusterSpider(scrapy.Spider):
     name = 'GusterSpider'
@@ -17,25 +19,32 @@ class GusterSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        url = "https://bans.guster.ro/api.php?type=player&player=" + self.player_username + "&page=1&perpage=25"
+        # Format the URL with the player's username
+        url = BASE_URL.format(self.player_username, 1)
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
+        # Load the response text as JSON
         banlist = json.loads(response.text)
         last_page = banlist['lastpage']
+
+        # If there are no punishments, return
         if banlist['totalpunish'] == '0':
             return
 
-        base_url: str = response.url.split('?')[0] + "?type=player&player={}&page={}&perpage=25"
-
+        # Loop through all pages and send a request for each
         for page in range(1, last_page + 1):
-            yield scrapy.Request(base_url.format(self.player_username, page), callback=self.parse_page)
+            yield scrapy.Request(BASE_URL.format(self.player_username, page), callback=self.parse_page)
 
     def parse_page(self, response):
-        _bans_list = json.loads(response.text)['banlist']
+        # Load the ban list from the response
+        bans_on_page = json.loads(response.text)['banlist']
 
-        for ban in _bans_list:
+        # Loop through all bans on the page
+        for ban in bans_on_page:
+            # If the ban is a dictionary and contains all necessary keys
             if isinstance(ban, dict) and 'Ban' in ban.get('type') and all(key in ban for key in ['reason', 'date', 'expire']):
+                # Yield a new BanItem
                 yield BanItem({
                     'source': urlparse(response.url).hostname,
                     'reason': translate(ban['reason']) if get_language(ban['reason']) != 'en' else ban['reason'],

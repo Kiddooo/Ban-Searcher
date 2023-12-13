@@ -1,3 +1,4 @@
+# Import necessary libraries
 import scrapy
 from banlist_project.items import BanItem
 from bs4 import BeautifulSoup
@@ -6,6 +7,14 @@ import dateparser
 from utils import get_language, translate
 import unicodedata
 
+# Define constants
+URLS = [
+    "http://mc.virtualgate.org/ban/index.php?action=viewplayer&player=<USERNAME>&server=0",
+    "https://woodymc.de/BanManager/index.php?action=viewplayer&player=<USERNAME>&server=0",
+    "https://bans.piratemc.com/index.php?action=viewplayer&player=<USERNAME>&server=0"
+]
+
+# Define BanManagerSpider class
 class BanManagerSpider(scrapy.Spider):
     name = 'BanManagerSpider'
 
@@ -16,18 +25,24 @@ class BanManagerSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        urls = ["http://mc.virtualgate.org/ban/index.php?action=viewplayer&player=<USERNAME>&server=0",
-                "https://woodymc.de/BanManager/index.php?action=viewplayer&player=<USERNAME>&server=0",
-                "https://bans.piratemc.com/index.php?action=viewplayer&player=<USERNAME>&server=0"
-        ]
-        for url in urls:
+        for url in URLS:
             url = url.replace("<USERNAME>", self.player_username)
             yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
         soup = BeautifulSoup(response.text, 'lxml')
 
-        # Get current ban
+        # Parse current ban
+        current_ban = self.parse_current_ban(soup, response)
+        if current_ban:
+            yield current_ban
+
+        # Parse previous bans
+        previous_bans = self.parse_previous_bans(soup, response)
+        for ban in previous_bans:
+            yield ban
+
+    def parse_current_ban(self, soup, response):
         current_ban_table = soup.find('table', id='current-ban')
         if current_ban_table is not None:
             if current_ban_table.find('tr').find('td').text != 'None':
@@ -46,7 +61,6 @@ class BanManagerSpider(scrapy.Spider):
                 # Get ban length
                 ban_length_str = unicodedata.normalize('NFC', current_ban[0][1])
                 if ban_length_str != "Permanent" and ban_length_str.strip() != "Dich sehen wir nicht wieder =:o)":
-                    print("no")
                     ban_length = dateparser.parse('in ' + ban_length_str) - dateparser.parse('now')
 
                     # Calculate ban end date
@@ -57,7 +71,7 @@ class BanManagerSpider(scrapy.Spider):
                 else:
                     ban_end_timestamp = 'Permanent'
 
-                yield BanItem({
+                return BanItem({
                     'source': tldextract.extract(response.url).domain,
                     'url': response.url,
                     'reason': current_ban[3][1],
@@ -65,7 +79,7 @@ class BanManagerSpider(scrapy.Spider):
                     'expires': ban_end_timestamp
                 })
 
-        # Get previous bans
+    def parse_previous_bans(self, soup, response):
         previous_bans_table = soup.find('table', id='previous-bans')
         if previous_bans_table is not None:
             if previous_bans_table.find_all('tr')[1:][0].find('td').text != 'None':

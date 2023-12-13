@@ -3,34 +3,46 @@ import scrapy
 from banlist_project.items import BanItem
 from bs4 import BeautifulSoup, Comment
 import tldextract
-import datetime
 from utils import get_language, translate
 
+# Constants for various strings used in the code
 DATE_FORMAT = "%b %d, %Y %I:%M:%S %p"
+UNKNOWN_USER_TEXT = 'Unknown User'
+BAN_TABLE_CLASS = 'table table-bordered'
+PERMANENT_BAN_TEXT = "Permanent"
+BAN_RECEIVED_COMMENT = 'user.ban_received_table_start'
+BAN_URL = "https://bans.johnymuffin.com/user/"
 
 class JohnyMuffinSpider(scrapy.Spider):
+    # Name of the spider
     name = 'JohnyMuffinSpider'
 
     def __init__(self, username, player_uuid, player_uuid_dash, *args, **kwargs):
+        # Initialize the spider with the player's username and UUID
         super(JohnyMuffinSpider, self).__init__(*args, **kwargs)
         self.player_username = username
         self.player_uuid = player_uuid
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        url = "https://bans.johnymuffin.com/user/" + self.player_uuid_dash
+        # Start the spider by sending a request to the ban URL
+        url = BAN_URL + self.player_uuid_dash
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
+        # Parse the response using BeautifulSoup
         soup = BeautifulSoup(response.text, 'lxml')
 
-        if soup.find('strong', text='Unknown User'):
+        # If the user is unknown, return
+        if soup.find('strong', text=UNKNOWN_USER_TEXT):
             return
 
-        if soup.find(text=lambda text: isinstance(text, Comment) and 'user.ban_received_table_start' in text):
-            table = soup.find_all('table', class_='table table-bordered')[0]
-            if table is not None:
-                for row in table.find_all('tr')[1:]: # Skip the header row
+        # If the user has received a ban, find the ban table
+        if soup.find(text=lambda text: isinstance(text, Comment) and BAN_RECEIVED_COMMENT in text):
+            ban_table = soup.find_all('table', class_=BAN_TABLE_CLASS)[0]
+            if ban_table is not None:
+                # For each row in the ban table (skipping the header), create a BanItem
+                for row in ban_table.find_all('tr')[1:]: # Skip the header row
                     columns = row.find_all('td')
                     ban_reason = columns[2].text
                     yield BanItem({
@@ -38,5 +50,5 @@ class JohnyMuffinSpider(scrapy.Spider):
                         'url': response.url,
                         'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
                         'date': "N/A",
-                        'expires': "Permanent" if "Permanent" in columns[3].text else int(dateparser.parse(columns[3].text).timestamp())
+                        'expires': PERMANENT_BAN_TEXT if PERMANENT_BAN_TEXT in columns[3].text else int(dateparser.parse(columns[3].text).timestamp())
                     })
