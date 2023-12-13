@@ -1,11 +1,16 @@
+import subprocess
+import sys
+import time
+import webbrowser
 import requests
 import re
 import traceback
-from bs4 import BeautifulSoup
 import json
 import os
 from deep_translator import GoogleTranslator, single_detection
 from dotenv import load_dotenv
+
+from banlist_project.items import BanItem
 
 load_dotenv()
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
@@ -32,6 +37,7 @@ def load_external_urls():
         raise Exception(f"Unexpected error: {e}") from e
 
 def generate_report(PLAYER_USERNAME, PLAYER_UUID_DASH, _bans):
+    print(os.getcwd())
     ban_report = {
         "username": PLAYER_USERNAME,
         "uuid": PLAYER_UUID_DASH,
@@ -40,9 +46,21 @@ def generate_report(PLAYER_USERNAME, PLAYER_UUID_DASH, _bans):
         "skinurl": "",
         "pastskins": ["", "", ""]
     }
-    with open("SecretFrontend/bans.json", "w", encoding="utf-8") as bans_json:
-        json.dump(ban_report, bans_json, indent=4)
-    print("Report generated.")
+    # Get the directory of the current Python script
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    # Get the absolute path to the SecretFrontend directory
+    secret_frontend_dir = os.path.join(script_dir, "SecretFrontend")
+    # Construct the full path to the bans.json file
+    bans_file = os.path.join(secret_frontend_dir, "bans.json")
+    with open(bans_file, "w", encoding="utf-8") as bans_json:
+        json.dump(ban_report, bans_json, indent=4, default=lambda obj: obj.to_json() if isinstance(obj, BanItem) else None)
+    
+    print("Opening report...")
+    os.chdir(secret_frontend_dir)
+    p = subprocess.Popen([sys.executable, "-m", "http.server", "--bind", "127.0.0.1", "8000"], stdout=subprocess.PIPE) # nosec
+    webbrowser.open("http://127.0.0.1:8000/index.html", new=2, autoraise=True)
+    time.sleep(5)
+    p.kill()
 
 def validateUsername(Username: str) -> str:
 	try:
@@ -84,29 +102,29 @@ def check_response_text(response_text, search_strings):
 	return False
 
 
-def playerSkins(current=False, username=False, uuid=False): #username or uuid is 'false' because its not mandatory to enter them11
-	if isinstance(username, str):
-		url = 'https://namemc.com/profile/' + username#gets websites code or scrapes it
+# def playerSkins(current=False, username=False, uuid=False): #username or uuid is 'false' because its not mandatory to enter them11
+# 	if isinstance(username, str):
+# 		url = 'https://namemc.com/profile/' + username#gets websites code or scrapes it
 
-	if isinstance(uuid, str):
-		url = 'https://namemc.com/profile/' + str(uuid) #gets websites code or scrapes it
+# 	if isinstance(uuid, str):
+# 		url = 'https://namemc.com/profile/' + str(uuid) #gets websites code or scrapes it
 
-	headers = {'Content-Type': 'application/json'}
+# 	headers = {'Content-Type': 'application/json'}
 
-	data = {
-		"cmd": "request.get",
-		"url": f"{url}",
-		"maxTimeout": 60000
-	}
+# 	data = {
+# 		"cmd": "request.get",
+# 		"url": f"{url}",
+# 		"maxTimeout": 60000
+# 	}
 
-	response = requests.post(FLARESOLVER_URL, data=json.dumps(data), headers=headers, timeout=60)
-	html = response.json().get('solution').get('response')
-	soup = BeautifulSoup(html, 'html.parser')
-	skins = soup.find_all('script', attrs={'defer': ''}, src=lambda x: "s.namemc.com/i/" in x if x else False)[:-1]
-	skin_ids = []
+# 	response = requests.post(FLARESOLVER_URL, data=json.dumps(data), headers=headers, timeout=60)
+# 	html = response.json().get('solution').get('response')
+# 	soup = BeautifulSoup(html, 'html.parser')
+# 	skins = soup.find_all('script', attrs={'defer': ''}, src=lambda x: "s.namemc.com/i/" in x if x else False)[:-1]
+# 	skin_ids = []
 
-	for skin in skins:
-		skin = str(skin).replace("<script defer=\"\" src=\"https://s.namemc.com/i/", "").replace(".js\"></script>", "")
-		skin_ids.append(skin)
+# 	for skin in skins:
+# 		skin = str(skin).replace("<script defer=\"\" src=\"https://s.namemc.com/i/", "").replace(".js\"></script>", "")
+# 		skin_ids.append(skin)
 
-	return skin_ids
+# 	return skin_ids
