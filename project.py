@@ -1,7 +1,7 @@
 import os
 from InquirerPy import prompt
 from banlist_project.pipelines import BanPipeline
-from utils import generate_report, logging
+from utils import logging
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 from player_report import PlayerReport
