@@ -18,7 +18,7 @@ class StrongcraftSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        url = f"https://www.strongcraft.org/players/{self.player_username}"
+        url = f"https://www.strongcraft.org/players/{self.player_username}/"
         yield scrapy.Request(url, callback=self.parse, meta={'dont_redirect': True})
 
     def parse(self, response):

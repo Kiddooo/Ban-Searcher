@@ -21,7 +21,7 @@ class MCBansSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        url = "https://www.mcbans.com/player/" + self.player_uuid
+        url = f"https://www.mcbans.com/player/{self.player_uuid}/"
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):

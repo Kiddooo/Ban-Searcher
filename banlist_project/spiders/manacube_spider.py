@@ -31,7 +31,7 @@ class ManaCubeSpider(scrapy.Spider):
     # The start_requests method generates the initial request for the spider
     def start_requests(self):
         # The URL is constructed using the player's username
-        url = f"https://manacube.com/members/{self.player_username}.html"
+        url = f"https://bans.manacube.com/user?user={self.player_username}"
         yield scrapy.Request(url, callback=self.parse)
 
     # The parse method processes the response from the server

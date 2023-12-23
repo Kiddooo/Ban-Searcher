@@ -163,3 +163,4 @@ SecretFrontend/
 .cosine
 .trunk
 SecretFrontend
+credentials.json

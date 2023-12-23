@@ -3,7 +3,6 @@ import re
 import json
 import sys
 import time
-import traceback
 from typing import List
 import requests
 import subprocess #nosec
@@ -127,94 +126,26 @@ def generate_report(player_username, player_uuid, bans):
     time.sleep(5)
     p.kill()
 
-def validate_username(username: str) -> bool:
-    """Check if the Minecraft username is valid using Mojang's API.
-
-    Args:
-        username (str): The Minecraft username to validate.
-
-    Returns:
-        bool: True if valid, False otherwise.
+def validate_input(input_str: str) -> bool:
     """
+    Validate Minecraft username or UUID.
+    """
+    # URLs for Mojang's servers
+    session_url = "https://sessionserver.mojang.com/session/minecraft/profile/"
     api_url = "https://api.mojang.com/users/profiles/minecraft/"
-
-    # Make API request to Mojang's service
+    # Determine the type of input and construct URL
+    if "-" in input_str:
+        final_url = f"{session_url}{input_str}"
+    elif len(input_str) == 32:
+        final_url = f"{session_url}{input_str}"
+    else:
+        final_url = f"{api_url}{input_str}"
     try:
-        response = requests.get(f"{api_url}{username}", timeout=5).json()
-        # Check if the user ID exists in the response
-        return "id" in response
+        response = requests.get(final_url, timeout=5)
+        is_valid = response.status_code == 200
+        return is_valid
     except requests.exceptions.RequestException:
-        # Handle network-related exceptions
         return False
-    except KeyError:
-        # Handle missing ID key in the response
-        return False
-
-def UUID_to_username(uuid: str) -> str:
-    """
-    Convert a UUID to a Minecraft username using Mojang's session server.
-
-    Args:
-    - uuid: The UUID of the Minecraft user
-
-    Returns:
-    - The username corresponding to the UUID
-
-    Raises:
-    - KeyError: If the username is not found in the response
-    """
-    # Mojang session server URL with the UUID
-    url = ("https://sessionserver.mojang.com""/session/minecraft/profile/{}").format(uuid)
-
-    try:
-        # Send a request to the server and parse the JSON response
-        response = requests.get(url, timeout=5).json()
-        # Return the username from the response
-        return response["name"]
-    except KeyError:
-        # Print an error message if the username is not found
-        print("Username not found for UUID.")
-
-def username_to_uuid(username: str) -> str:
-    """Convert Minecraft username to UUID.
-
-    Args:
-        username (str): The Minecraft username to convert.
-
-    Returns:
-        str: The UUID of the username or traceback on KeyError.
-    """
-    # Base URL for the Mojang API
-    api_url = "https://api.mojang.com/users/profiles/minecraft/"
-
-    try:
-        # Request the user's profile as JSON with a timeout
-        response = requests.get(f"{api_url}{username}", timeout=5)
-        response_json = response.json()
-
-        # Return the UUID from the response
-        return response_json["id"]
-    except KeyError:
-        # Return the traceback if there's a KeyError
-        return traceback.format_exc()
-
-def UUIDToUUIDDash(UUID: str) -> str:
-    """
-    Converts a UUID to a UUID with dashes.
-
-    Parameters:
-    UUID (str): The UUID to be converted.
-
-    Returns:
-    str: The UUID with dashes.
-    """
-    # Use regex to match the UUID pattern
-    matcher = re.search(
-        "([a-f0-9]{8})([a-f0-9]{4})([0-5][0-9a-f]{3})([089ab][0-9a-f]{3})([0-9a-f]{12})",
-        UUID,
-    )
-    # Return the UUID with dashes
-    return f"{matcher.group(1)}-{matcher.group(2)}-{matcher.group(3)}-{matcher.group(4)}-{matcher.group(5)}"
 
 def check_response_text(response_text: str, search_strings: List[str]) -> bool:
     """
