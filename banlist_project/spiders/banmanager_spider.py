@@ -9,9 +9,9 @@ import unicodedata
 
 # Define constants
 URLS = [
-    "http://mc.virtualgate.org/ban/index.php?action=viewplayer&player=<USERNAME>&server=0",
-    "https://woodymc.de/BanManager/index.php?action=viewplayer&player=<USERNAME>&server=0",
-    "https://bans.piratemc.com/index.php?action=viewplayer&player=<USERNAME>&server=0"
+    "http://mc.virtualgate.org/ban/index.php?action=viewplayer&player=",
+    "https://woodymc.de/BanManager/index.php?action=viewplayer&player=",
+    "https://bans.piratemc.com/index.php?action=viewplayer&player="
 ]
 
 # Define BanManagerSpider class
@@ -26,7 +26,7 @@ class BanManagerSpider(scrapy.Spider):
 
     def start_requests(self):
         for url in URLS:
-            url = url.replace("<USERNAME>", self.player_username)
+            url = f"{url}{self.player_username}&server=0"
             yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):

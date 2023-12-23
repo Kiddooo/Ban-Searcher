@@ -1,10 +1,10 @@
 import scrapy
 import tldextract
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import get_language, translate, logger
 
 # Constants
-URL_TEMPLATE = "https://minecraftonline.com/cgi-bin/getplayerinfo?{}"
+URL_TEMPLATE = "https://minecraftonline.com/cgi-bin/getplayerinfo?"
 
 class MCOnlineSpider(scrapy.Spider):
     """
@@ -25,7 +25,7 @@ class MCOnlineSpider(scrapy.Spider):
         """
         This method generates the initial request to scrape player information.
         """
-        url = URL_TEMPLATE.format(self.player_username)
+        url = f"{URL_TEMPLATE}{self.player_username}"
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
@@ -46,4 +46,4 @@ class MCOnlineSpider(scrapy.Spider):
             })
         except IndexError:
             # Log a message if an error occurs
-            self.log("Error parsing response for player: {}".format(self.player_username))
+            logger.error(f"Error parsing response for player: {self.player_username}")

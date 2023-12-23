@@ -3,7 +3,7 @@ import scrapy
 from bs4 import BeautifulSoup
 import tldextract
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import get_language, translate, logger
 
 class SnapcraftSpider(scrapy.Spider):
     # Define the name of the spider
@@ -56,7 +56,7 @@ class SnapcraftSpider(scrapy.Spider):
             ban_date = int(dateparser.parse(row.find('div', class_='td _date').text.strip()).timestamp())
         except ValueError:
             # If parsing fails, log an error and continue
-            print("Failed to parse ban date:", row.find('div', class_='td _date').text.strip())
+            logger.error("Failed to parse ban date:", row.find('div', class_='td _date').text.strip())
             ban_date = 'N/A'
         return ban_date
 
@@ -72,6 +72,6 @@ class SnapcraftSpider(scrapy.Spider):
                 ban_expires = int(dateparser.parse(ban_expires).timestamp())
             except ValueError:
                 # If parsing fails, log an error and continue
-                print("Failed to parse ban expiry:", ban_expires)
+                logger.error("Failed to parse ban expiry:", ban_expires)
                 ban_expires = 'N/A'
         return ban_expires

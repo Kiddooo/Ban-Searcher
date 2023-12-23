@@ -1,55 +1,77 @@
+from pydantic import BaseModel, validator, HttpUrl
+from typing import ClassVar, Optional
+from uuid import UUID
 import requests
-import re
-import traceback
 
-class PlayerConverter:
-    def __init__(self, input_value, input_type):
-        self.input_value = input_value
-        self.input_type = input_type
+class Player(BaseModel):
+    SESSION_API_URL: ClassVar[HttpUrl] = 'https://sessionserver.mojang.com/session/minecraft/profile/'
+    username: Optional[str] = None
+    uuid: Optional[str] = None
+    uuid_dash: Optional[str] = None
 
-    def convert(self):
-        if self.input_type == 'Username':
-            username = self.input_value
-            uuid = self.username_to_uuid(username)
-            uuid_dash = self.uuid_to_uuid_dash(uuid)
-        elif self.input_type == 'UUID':
-            uuid = self.input_value
-            username = self.uuid_to_username(uuid)
-            uuid_dash = self.uuid_to_uuid_dash(uuid)
-        else:  # UUID with dashes
-            uuid_dash = self.input_value
-            uuid = self.uuid_dash_to_uuid(uuid_dash)
-            username = self.uuid_to_username(uuid)
+    def fetch_username_from_uuid(self):
+        if self.uuid:
+            url = f'{self.SESSION_API_URL}{self.uuid}'
+            response = requests.get(url, timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                self.username = data['name']
 
-        return username, uuid, uuid_dash
+    def fetch_uuid_from_username(self):
+        if self.username:
+            url = f'https://api.mojang.com/users/profiles/minecraft/{self.username}'
+            response = requests.get(url, timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                self.uuid = data['id']
 
-    @staticmethod
-    def uuid_to_username(uuid):
-        url = ("https://sessionserver.mojang.com/session/minecraft/profile/{}").format(uuid)
-        try:
-            response = requests.get(url, timeout=5).json()
-            return response["name"]
-        except KeyError:
-            print("Username not found for UUID.")
+    def convert_uuid_to_uuid_dash(self):
+        if self.uuid:
+            try:
+                # Convert the UUID to its canonical form (with dashes)
+                uuid_with_dashes = str(UUID(self.uuid))
+                self.uuid_dash = uuid_with_dashes
+            except ValueError:
+                # Handle the exception if the UUID is not in the correct format
+                pass
 
-    @staticmethod
-    def username_to_uuid(username):
-        api_url = "https://api.mojang.com/users/profiles/minecraft/"
-        try:
-            response = requests.get(f"{api_url}{username}", timeout=5)
-            response_json = response.json()
-            return response_json["id"]
-        except KeyError:
-            return traceback.format_exc()
+    @validator('uuid', pre=True, always=True)
+    def ensure_uuid(cls, value, values):
+        if not value and values.get('username'):
+            # Instead of creating a new instance, call the API directly
+            url = f'https://api.mojang.com/users/profiles/minecraft/{values["username"]}'
+            response = requests.get(url, timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                return data['id']
+        return value
 
-    @staticmethod
-    def uuid_to_uuid_dash(UUID):
-        matcher = re.search(
-            "([a-f0-9]{8})([a-f0-9]{4})([0-5][0-9a-f]{3})([089ab][0-9a-f]{3})([0-9a-f]{12})",
-            UUID,
-        )
-        return f"{matcher.group(1)}-{matcher.group(2)}-{matcher.group(3)}-{matcher.group(4)}-{matcher.group(5)}"
+    @validator('uuid_dash', pre=True, always=True)
+    def ensure_uuid_dash(cls, value, values):
+        if not value and values.get('uuid'):
+            # Convert the UUID to its canonical form (with dashes)
+            try:
+                uuid_with_dashes = str(UUID(values['uuid']))
+                return uuid_with_dashes
+            except ValueError:
+                pass
+        return value
 
-    @staticmethod
-    def uuid_dash_to_uuid(uuid_dash):
-        return uuid_dash.replace("-", "")
+    @validator('username', pre=True, always=True)
+    def ensure_username(cls, value, values):
+        if not value and values.get('uuid'):
+            # Instead of creating a new instance, call the API directly
+            url = f'{cls.SESSION_API_URL}{values["uuid"]}'
+            response = requests.get(url, timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                return data['name']
+        return value
+
+    def ensure_all_attributes(self):
+        if not self.username and self.uuid:
+            self.fetch_username_from_uuid()
+        if not self.uuid and self.username:
+            self.fetch_uuid_from_username()
+        if not self.uuid_dash and self.uuid:
+            self.convert_uuid_to_uuid_dash()

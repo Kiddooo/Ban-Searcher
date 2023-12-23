@@ -3,7 +3,7 @@ import scrapy
 from banlist_project.items import BanItem
 from bs4 import BeautifulSoup
 import re
-from utils import get_language, translate
+from utils import get_language, translate, logger
 
 # Define constants for repeated string values
 TIMELINE = 'timeline'
@@ -85,7 +85,7 @@ class BanManagerBonemealSpider(scrapy.Spider):
         try:
             return dateparser.parse(date_str)
         except ValueError:
-            print(f"Error parsing date: {date_str}")
+            logger.error(f"Error parsing date: {date_str}")
             return None
 
     # Function to calculate timestamps from dates

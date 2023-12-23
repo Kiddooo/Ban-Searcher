@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import urllib.parse
 import re
 import tldextract
-from utils import get_language, translate
+from utils import get_language, translate, logger
 
 class LiteBansSpider(scrapy.Spider):
     name = 'LiteBansSpider'
@@ -171,14 +171,14 @@ class LiteBansSpider(scrapy.Spider):
                 try:
                     ban_expires = int(dateparser.parse(ban_expiry).timestamp())
                 except ValueError:
-                    print("Failed to parse ban expiry:", ban_expiry)
+                    logger.error("Failed to parse ban expiry:", ban_expiry)
                     ban_expires = 'N/A'
 
             ban_date_text = ban_date.replace("klo", "").split(" (")[0].strip()
             try:
                 ban_date = int(dateparser.parse(ban_date_text).timestamp())
             except ValueError:
-                print("Failed to parse ban date:", ban_date_text)
+                logger.error("Failed to parse ban date:", ban_date_text)
                 ban_date = "N/A"
 
             ban_reason = ban_reason.encode("ascii", "ignore").decode()
@@ -192,7 +192,7 @@ class LiteBansSpider(scrapy.Spider):
 
             return ban
         except Exception as e:
-            print(e)
+            raise Exception(f"Failed to generate ban: {e}") from e
 
     def translate_month(self, date_string):
         spanish_to_english = {
@@ -217,16 +217,17 @@ class LiteBansSpider(scrapy.Spider):
         header = header.lower()
         reason_translations = {
             'en': ['reason'],
-            'es': ['motivo', 'razón'],  # Spanish
-            'de': ['grund'],  # German
-            'fi': ['syy'],  # Finnish
-            'it': ['motivazione'],  # Italian
-            'fr': ['raison'],  # French
-            'pt': ['motivo', 'razão'],  # Portuguese
-            'ru': ['причина'],  # Russian
-            'ja': ['理由'],  # Japanese
-            'zh': ['原因'],  # Chinese
-            'ar': ['سبب']  # Arabic
+            'es': ['motivo', 'razón'],   # Spanish
+            'de': ['grund'],             # German
+            'fi': ['syy'],               # Finnish
+            'it': ['motivazione'],       # Italian
+            'fr': ['raison'],            # French
+            'pt': ['motivo', 'razão'],   # Portuguese
+            'ru': ['причина'],          # Russian
+            'ja': ['理由'],             # Japanese
+            'zh': ['原因'],             # Chinese
+            'ar': ['سبب'],              # Arabic
+            'dk': ['grund']             # Danish
             # Add more translations as needed
         }
         date_translations = {
@@ -240,7 +241,8 @@ class LiteBansSpider(scrapy.Spider):
             'ru': ['дата'],  # Russian
             'ja': ['日付'],  # Japanese
             'zh': ['日期'],  # Chinese
-            'ar': ['تاريخ']  # Arabic
+            'ar': ['تاريخ'],# Arabic
+            'dk': ['dato']   # Danish
             # Add more translations as needed
         }
         expiry_translations = {
@@ -254,7 +256,8 @@ class LiteBansSpider(scrapy.Spider):
             'ru': ['истекает'],  # Russian
             'ja': ['有効期限'],  # Japanese
             'zh': ['到期'],  # Chinese
-            'ar': ['تنتهي']  # Arabic
+            'ar': ['تنتهي'],# Arabic
+            'dk': ['Udløber']   # Danish
             # Add more translations as needed
         }
         

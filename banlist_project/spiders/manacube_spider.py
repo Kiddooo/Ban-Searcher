@@ -59,9 +59,7 @@ class ManaCubeSpider(scrapy.Spider):
                     {
                         "source": tldextract.extract(response.url).domain,
                         "url": response.url,
-                        "reason": translate(ban_reason)
-                        if get_language(ban_reason) != EN
-                        else ban_reason,
+                        "reason": translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
                         "date": ban_date_object,
                         "expires": expires_date_object,
                     }
@@ -73,9 +71,5 @@ class ManaCubeSpider(scrapy.Spider):
         date_string = date_string.replace(AT, "")
         date_string = re.sub(rf"(\d)({ST}|{ND}|{RD}|{TH})", r"\1", date_string)
         date_string = " ".join(date_string.split())
-        date_object = int(
-            dateparser.parse(date_string)
-            .replace(tzinfo=timezone.utc)
-            .timestamp()
-        )
+        date_object = int(dateparser.parse(date_string).replace(tzinfo=timezone.utc).timestamp())
         return date_object

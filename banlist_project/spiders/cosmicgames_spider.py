@@ -2,7 +2,7 @@ import scrapy
 from banlist_project.items import BanItem
 import json
 import tldextract
-from utils import get_language, translate
+from utils import get_language, translate, logger
 
 # Define constants for static values
 BASE_URL = "https://bans-api.cosmic.games/prisons/player/"
@@ -28,7 +28,7 @@ class CosmicGamesSpider(scrapy.Spider):
         try:
             json_response = json.loads(response.text)
         except json.JSONDecodeError:
-            print("Error decoding JSON")
+            logger.error("Error decoding JSON")
             return
 
         # If response is not empty, process each offence

@@ -4,7 +4,7 @@ import scrapy
 from twisted.internet.threads import deferToThread
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-
+from utils import logger
 from banlist_project.items import BanItem
 
 class GoogleSheetsSpider(scrapy.Spider):
@@ -39,7 +39,7 @@ class GoogleSheetsSpider(scrapy.Spider):
                     return int(parsed_date.timestamp())
             except Exception as e:
                 # Log the exception for debugging purposes
-                self.logger.error(f"Exception occurred: {e}")
+                logger.error(f"Exception occurred: {e}")
         # If year is not present or parsing failed, return "N/A"
         return "N/A"
 
@@ -48,8 +48,7 @@ class GoogleSheetsSpider(scrapy.Spider):
         SPREADSHEET_ID = '1VdyBZs4B-qoA8-IijPvbRUVBLfOuU9I5fV_PhuOWJao'
         RANGE_NAME = 'Universal Ban List'  # Replace with your actual range name
         RANGE_NAME_PREV = 'Previously Banned'  # Replace with your actual range name
-        creds = service_account.Credentials.from_service_account_file(
-            'credentials.json', scopes=SCOPES)
+        creds = service_account.Credentials.from_service_account_file('credentials.json', scopes=SCOPES)
         service = build('sheets', 'v4', credentials=creds)
 
         # Read the first range "Universal Ban List"

@@ -11,11 +11,19 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from deep_translator import GoogleTranslator, single_detection
 from banlist_project.items import BanItem
+import logging
 
 load_dotenv()
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
 FLARESOLVER_URL = 'http://localhost:8191/v1'
 DETECTLANGUAGE_API_KEY = os.getenv('DETECTLANGUAGE_API_KEY')
+
+logger = logging.getLogger('Ban-Scraper')
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 def get_language(text: str) -> str:
     """
@@ -125,27 +133,6 @@ def generate_report(player_username, player_uuid, bans):
     # Wait for a short period before killing the server
     time.sleep(5)
     p.kill()
-
-def validate_input(input_str: str) -> bool:
-    """
-    Validate Minecraft username or UUID.
-    """
-    # URLs for Mojang's servers
-    session_url = "https://sessionserver.mojang.com/session/minecraft/profile/"
-    api_url = "https://api.mojang.com/users/profiles/minecraft/"
-    # Determine the type of input and construct URL
-    if "-" in input_str:
-        final_url = f"{session_url}{input_str}"
-    elif len(input_str) == 32:
-        final_url = f"{session_url}{input_str}"
-    else:
-        final_url = f"{api_url}{input_str}"
-    try:
-        response = requests.get(final_url, timeout=5)
-        is_valid = response.status_code == 200
-        return is_valid
-    except requests.exceptions.RequestException:
-        return False
 
 def check_response_text(response_text: str, search_strings: List[str]) -> bool:
     """
