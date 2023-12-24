@@ -1,7 +1,12 @@
+from requests.exceptions import RequestException
 from pydantic import BaseModel, validator, HttpUrl
 from typing import ClassVar, Optional
 from uuid import UUID
 import requests
+
+class PlayerValidationError(Exception):
+    pass
+
 
 class Player(BaseModel):
     SESSION_API_URL: ClassVar[HttpUrl] = 'https://sessionserver.mojang.com/session/minecraft/profile/'
@@ -13,18 +18,28 @@ class Player(BaseModel):
     def fetch_username_from_uuid(self):
         if self.uuid:
             url = f'{self.SESSION_API_URL}{self.uuid}'
-            response = requests.get(url, timeout=5)
-            if response.status_code == 200:
-                data = response.json()
-                self.username = data['name']
+            try:
+                with requests.Session() as session:
+                    response = session.get(url, timeout=5)
+                    if response.status_code == 200:
+                        data = response.json()
+                        if 'name' in data:
+                            self.username = data['name']
+            except RequestException:
+                pass
 
     def fetch_uuid_from_username(self):
         if self.username:
             url = f'{self.API_URL}{self.username}'
-            response = requests.get(url, timeout=5)
-            if response.status_code == 200:
-                data = response.json()
-                self.uuid = data['id']
+            try:
+                with requests.Session() as session:
+                    response = session.get(url, timeout=5)
+                    if response.status_code == 200:
+                        data = response.json()
+                        if 'id' in data:
+                            self.uuid = data['id']
+            except RequestException:
+                pass
 
     def convert_uuid_to_uuid_dash(self):
         if self.uuid:
@@ -41,10 +56,15 @@ class Player(BaseModel):
         if not value and values.get('username'):
             # Instead of creating a new instance, call the API directly
             url = f'{cls.API_URL}{values["username"]}'
-            response = requests.get(url, timeout=5)
-            if response.status_code == 200:
-                data = response.json()
-                return data['id']
+            try:
+                with requests.Session() as session:
+                    response = session.get(url, timeout=5)
+                    if response.status_code == 200:
+                        data = response.json()
+                        if 'id' in data:
+                            return data['id']
+            except RequestException:
+                pass
         return value
 
     @validator('uuid_dash', pre=True, always=True)
@@ -55,7 +75,7 @@ class Player(BaseModel):
                 uuid_with_dashes = str(UUID(values['uuid']))
                 return uuid_with_dashes
             except ValueError:
-                pass
+                raise ValueError('Invalid UUID format')
         return value
 
     @validator('username', pre=True, always=True)
@@ -63,10 +83,15 @@ class Player(BaseModel):
         if not value and values.get('uuid'):
             # Instead of creating a new instance, call the API directly
             url = f'{cls.SESSION_API_URL}{values["uuid"]}'
-            response = requests.get(url, timeout=5)
-            if response.status_code == 200:
-                data = response.json()
-                return data['name']
+            try:
+                with requests.Session() as session:
+                    response = session.get(url, timeout=5)
+                    if response.status_code == 200:
+                        data = response.json()
+                        if 'name' in data:
+                            return data['name']
+            except RequestException:
+                pass
         return value
 
     def ensure_all_attributes(self):

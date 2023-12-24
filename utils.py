@@ -18,48 +18,65 @@ logger.addHandler(handler)
 
 def get_language(text: str) -> str:
     """
-    Detect the language of the given text using an external API.
+    Detects the language of a given text using an API key.
 
-    :param text: The text whose language is to be detected.
-    :return: The detected language.
+    Args:
+        text (str): The text for which the language needs to be detected.  
+        api_key (str): The API key for language detection.
+
+    Returns:
+        str: The detected language of the input text, or a default value/error message if language detection fails.
     """
-    # Detect language with the provided API key
-    detected_lang = single_detection(
-        text, api_key=DETECTLANGUAGE_API_KEY
-    )
-    return detected_lang
+    try:
+        if not text:
+            return "Text argument is empty"
+        
+        if not isinstance(text, str):
+            raise TypeError("The 'text' argument must be a string.")
+        
+        # Detect language with the provided API key
+        detected_lang = single_detection(text, api_key=DETECTLANGUAGE_API_KEY)
+        return detected_lang
+    except Exception as e:
+        return "Language detection failed: " + str(e)
 
 def translate(text: str, from_lang: str = 'auto', to_lang: str = 'en') -> str:
     """
-    Translate text from one language to another using Google's API.
+    Translates text from one language to another using the GoogleTranslator class from the deep_translator library.
 
     Args:
-    text (str): The text to be translated.
-    from_lang (str, optional): The source language code (e.g., 'fr').
-        Defaults to 'auto' for auto-detection.
-    to_lang (str, optional): The target language code (e.g., 'en').
-        Defaults to 'en' for English.
+        text (str): The text to be translated.
+        from_lang (str, optional): The source language of the text. Defaults to 'auto', which automatically detects the language.
+        to_lang (str, optional): The target language for the translation. Defaults to 'en' (English).
 
     Returns:
-    str: The translated text.
+        str: The translated text in the target language.
     """
+    try:
+        if not isinstance(text, str):
+            raise TypeError("The 'text' argument must be a string.")
 
-    # Create a translator object with specified source and target.
-    translator = GoogleTranslator(source=from_lang, target=to_lang)
+        if not text:
+            return ""
 
-    # Translate the text and return the result.
-    return translator.translate(text)
+        # Create a translator object with specified source and target.
+        translator = GoogleTranslator(source=from_lang, target=to_lang)
+
+        # Translate the text and return the result.
+        return translator.translate(text)
+    except Exception as e:
+        return "Translation failed: " + str(e)
 
 def get_player_skins(username=None, uuid=None):
     """
-    Retrieves a list of skin IDs for a given Minecraft player.
+    Retrieves skin IDs associated with a Minecraft player's profile.
 
     Args:
-    username (str): Player's username.
-    uuid (str): Player's UUID.
+        username (str, optional): The username of the Minecraft player. If not provided, `uuid` must be provided.
+        uuid (str, optional): The UUID of the Minecraft player. If not provided, `username` must be provided.
 
     Returns:
-    list: Skin IDs associated with the player.
+        list: A list of skin IDs associated with the Minecraft player's profile.
     """
     base_url = 'https://namemc.com/profile/'
     profile_url = f"{base_url}{username or uuid}"
@@ -80,11 +97,7 @@ def get_player_skins(username=None, uuid=None):
     soup = BeautifulSoup(html_content, 'html.parser')
 
     # Get the script tags that contain skin IDs
-    skin_scripts = soup.find_all(
-        'script',
-        attrs={'defer': ''},
-        src=lambda x: "s.namemc.com/i/" in x if x else False
-    )[:-1]
+    skin_scripts = soup.select('script[src*="s.namemc.com/i/"]')[:-1]
 
     # Extract skin IDs from the script tags
     skin_ids = [script['src'].split('/')[-1].replace('.js', '') for script in skin_scripts]

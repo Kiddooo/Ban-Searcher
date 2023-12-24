@@ -1,14 +1,13 @@
 import os
+import re
+from typing import Tuple, Optional
 from InquirerPy import prompt
 from banlist_project.pipelines import BanPipeline
 from utils import logging
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 from player_report import PlayerReport
-from player_converter import Player
-from pydantic import ValidationError
-
-from typing import Tuple, Optional
+from player_converter import Player, PlayerValidationError
 
 def get_user_input() -> Tuple[Optional[str], Optional[str], Optional[str]]:
     """
@@ -19,46 +18,40 @@ def get_user_input() -> Tuple[Optional[str], Optional[str], Optional[str]]:
         Tuple[Optional[str], Optional[str], Optional[str]]:
         A tuple containing the username, UUID, and UUID with dashes.
     """
-    user_prompt = [
+    prompt_questions = [
         {
-            'type': 'list', 'name': 'type',
+            'type': 'list',
+            'name': 'type',
             'message': 'What will you enter?',
             'choices': ['Username', 'UUID']
-        }
-    ]
-    input_type = prompt(user_prompt)["type"]
-
-    value_prompt = [
+        },
         {
-            'type': 'input', 'name': 'value',
-            'message': f'Enter a {input_type}: '
+            'type': 'input',
+            'name': 'value',
+            'message': 'Enter a value: '
         }
     ]
-    input_value = prompt(value_prompt)["value"]
+    user_input = prompt(prompt_questions)
+    input_type = user_input["type"]
+    input_value = user_input["value"].strip()
 
     if not input_value:
-        logging.error(f'The input for {input_type} is invalid.')
-        return None, None, None
+        raise ValueError(f'The input for {input_type} is invalid.')
 
     if input_type.lower() == 'uuid':
-        input_value = input_value.replace('-', '')
+        input_value = re.sub(r'-', '', input_value)
 
     try:
         player_data = {input_type.lower(): input_value}
         player = Player(**player_data)
-        player.ensure_all_attributes()
 
         if player.username and player.uuid:
-            return (player.username, player.uuid, player.uuid_dash)
+            return player.username, player.uuid, player.uuid_dash
         else:
-            err_msg = \
-                f'Failed to fetch all player attributes. ' \
-                f'Username: {player.username}, UUID: {player.uuid}'
-            logging.error(err_msg)
-            return None, None, None
-    except ValidationError as e:
-        logging.error(f'Validation error when creating a Player: {e}')
-        return None, None, None
+            err_msg = f'Failed to fetch all player attributes. Username: {player.username}, UUID: {player.uuid}'
+            raise ValueError(err_msg)
+    except PlayerValidationError as e:
+        raise ValueError(f'Validation error when creating a Player: {e}')
 
 def clear_screen() -> None:
     """
