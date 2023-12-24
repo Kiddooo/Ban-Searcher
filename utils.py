@@ -1,22 +1,13 @@
 import os
-import re
-import json
-import sys
-import time
-from typing import List
 import requests
-import subprocess #nosec
-import webbrowser
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from deep_translator import GoogleTranslator, single_detection
-from banlist_project.items import BanItem
 import logging
 
 load_dotenv()
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
-FLARESOLVER_URL = 'http://localhost:8191/v1'
 DETECTLANGUAGE_API_KEY = os.getenv('DETECTLANGUAGE_API_KEY')
+FLARESOLVER_URL = 'http://localhost:8191/v1'
 
 logger = logging.getLogger('Ban-Scraper')
 logger.setLevel(logging.INFO)
@@ -58,94 +49,6 @@ def translate(text: str, from_lang: str = 'auto', to_lang: str = 'en') -> str:
 
     # Translate the text and return the result.
     return translator.translate(text)
-
-def load_external_urls():
-    """
-    Load external URLs from a JSON file.
-
-    Raises:
-        FileNotFoundError: If the 'websites.json' file is not found.
-        JSONDecodeError: If the file content is not valid JSON.
-        Exception: For any other types of exceptions.
-
-    Returns:
-        A list or dict containing the data from 'websites.json'.
-    """
-    # Path to the JSON file containing the URLs
-    json_path = "websites.json"
-    try:
-        # Open the file and load the JSON content
-        with open(json_path, "r") as file:
-            return json.load(file)
-    except FileNotFoundError as e:
-        msg = f"Error: {json_path} file not found."
-        raise FileNotFoundError(msg) from e
-    except json.JSONDecodeError as e:
-        msg = f"Error: {json_path} is not valid JSON."
-        raise json.JSONDecodeError(msg) from e
-    except Exception as e:
-        # Handle unexpected exceptions
-        raise Exception(f"Unexpected error: {e}") from e
-
-def generate_report(player_username, player_uuid, bans):
-    """
-    Generates a report for a player, writes it to a JSON file, and
-    opens a local server to display the report in a browser.
-
-    :param player_username: Username of the player
-    :param player_uuid: UUID of the player with dashes
-    :param bans: List of ban items for the player
-    """
-    # Construct the report dictionary
-    ban_report = {
-        "username": player_username,
-        "uuid": player_uuid,
-        "bans": bans,
-        "totalbans": len(bans),
-        "skinurl": "",
-        "pastskins": ["", "", ""]
-    }
-
-    # Determine the directory where the script is located
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-
-    # Define the directory to store the JSON report
-    frontend_dir = os.path.join(script_dir, "SecretFrontend")
-
-    # Create the full path to the JSON file
-    bans_file = os.path.join(frontend_dir, "bans.json")
-
-    # Write the report to the JSON file
-    with open(bans_file, "w", encoding="utf-8") as bans_json:
-        json.dump(ban_report, bans_json, indent=4, default=lambda obj: obj.to_json() if isinstance(obj, BanItem) else None)
-
-    # Change working directory to the frontend directory
-    os.chdir(frontend_dir)
-
-    # Start a local HTTP server to serve the report
-    server_cmd = [sys.executable, "-m", "http.server", "--bind", "127.0.0.1", "8000"]
-    p = subprocess.Popen(server_cmd, stdout=subprocess.PIPE) # nosec
-
-    # Open the report in the default web browser
-    webbrowser.open("http://127.0.0.1:8000/index.html",
-                    new=2, autoraise=True)
-
-    # Wait for a short period before killing the server
-    time.sleep(5)
-    p.kill()
-
-def check_response_text(response_text: str, search_strings: List[str]) -> bool:
-    """
-    Checks if any search string is in response_text.
-
-    Args:
-    response_text (str): Text to search in.
-    search_strings (List[str]): Strings to search for.
-
-    Returns:
-    bool: True if any string found, False otherwise.
-    """
-    return any(re.search(string, response_text) for string in search_strings)
 
 def get_player_skins(username=None, uuid=None):
     """

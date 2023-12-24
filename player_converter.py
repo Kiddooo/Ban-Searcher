@@ -5,6 +5,7 @@ import requests
 
 class Player(BaseModel):
     SESSION_API_URL: ClassVar[HttpUrl] = 'https://sessionserver.mojang.com/session/minecraft/profile/'
+    API_URL: ClassVar[HttpUrl] = 'https://api.mojang.com/users/profiles/minecraft/'
     username: Optional[str] = None
     uuid: Optional[str] = None
     uuid_dash: Optional[str] = None
@@ -19,7 +20,7 @@ class Player(BaseModel):
 
     def fetch_uuid_from_username(self):
         if self.username:
-            url = f'https://api.mojang.com/users/profiles/minecraft/{self.username}'
+            url = f'{self.API_URL}{self.username}'
             response = requests.get(url, timeout=5)
             if response.status_code == 200:
                 data = response.json()
@@ -39,7 +40,7 @@ class Player(BaseModel):
     def ensure_uuid(cls, value, values):
         if not value and values.get('username'):
             # Instead of creating a new instance, call the API directly
-            url = f'https://api.mojang.com/users/profiles/minecraft/{values["username"]}'
+            url = f'{cls.API_URL}{values["username"]}'
             response = requests.get(url, timeout=5)
             if response.status_code == 200:
                 data = response.json()

@@ -49,7 +49,3 @@ class PlayerReport:
 
     def _to_json(self, obj):
         return obj.to_json() if hasattr(obj, 'to_json') else None
-
-# Example usage:
-# player_report = PlayerReport("player1", "uuid-1234", bans_list)
-# player_report.generate_report()

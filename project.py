@@ -85,8 +85,7 @@ def start_crawling_process(username: str, uuid: str, uuid_dash: str) -> None:
     """
     process = CrawlerProcess(get_project_settings())
     for spider in process.spider_loader.list():
-        process.crawl(spider, username=username,
-                      player_uuid=uuid, player_uuid_dash=uuid_dash)
+        process.crawl(spider, username=username, player_uuid=uuid, player_uuid_dash=uuid_dash)
 
     process.start()
 

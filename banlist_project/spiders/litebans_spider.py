@@ -56,7 +56,7 @@ class LiteBansSpider(scrapy.Spider):
             "https://differentcraft.net/bans/history.php?uuid=",
             "https://hearthcraft.net/bans/history.php?uuid=",
             "https://hydrapvp.it/bans/history.php?uuid=",
-            "https://infracciones.acropolis-mc.com/history.php?uuid=",
+            # "https://infracciones.acropolis-mc.com/history.php?uuid=",
             "https://justleader.net/tresty/history/",
             "https://litebans.shiuki.eu.org/minersleague/punishments/history.php?uuid=",
             "https://lostgamers.eu/punishments/history.php?uuid=",
@@ -99,7 +99,6 @@ class LiteBansSpider(scrapy.Spider):
             "https://play.hellominers.com/bans/history.php?uuid=",
             "https://nytro.co/bans/history.php?uuid=",
             "https://www.pickaxemania.com/playerstatus/history.php?uuid="
-        
         ]
         for url in urls2:
             url = url + self.player_uuid_dash
@@ -122,6 +121,7 @@ class LiteBansSpider(scrapy.Spider):
         if table is not None:
             header_row = table.find('tr')  # Adjust this as needed
             headers = [cell.text.strip().lower() for cell in header_row.find_all('th')]
+            print(headers)
             # Translate headers to standard keys
             headers = [self.translate_header('reason', header) or self.translate_header('date', header) or self.translate_header('expires', header) for header in headers]
             # Find the indices of the cells we're interested in
@@ -257,7 +257,7 @@ class LiteBansSpider(scrapy.Spider):
             'ja': ['有効期限'],  # Japanese
             'zh': ['到期'],  # Chinese
             'ar': ['تنتهي'],# Arabic
-            'dk': ['Udløber']   # Danish
+            'dk': ['udløber']   # Danish
             # Add more translations as needed
         }
         
