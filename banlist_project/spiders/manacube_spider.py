@@ -17,59 +17,98 @@ RD = "rd"
 TH = "th"
 EN = "en"
 
-# This is a Scrapy Spider for the ManaCube website
+
 class ManaCubeSpider(scrapy.Spider):
     name = "ManaCubeSpider"
 
-    # The constructor takes a username and two forms of the player's UUID
-    def __init__(self, username, player_uuid, player_uuid_dash, *args, **kwargs):
-        super(ManaCubeSpider, self).__init__(*args, **kwargs)
+    def __init__(
+        self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
+    ):
+        """
+        Initialize the ManaCubeSpider object.
+
+        Args:
+            username (str): The username of the player.
+            player_uuid (str): The UUID of the player.
+            player_uuid_dash (str): The UUID of the player with dashes.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+        """
+        super().__init__(*args, **kwargs)
+
+        if not all([username, player_uuid, player_uuid_dash]):
+            raise ValueError("Invalid parameters")
+
         self.player_username = username
         self.player_uuid = player_uuid
         self.player_uuid_dash = player_uuid_dash
 
-    # The start_requests method generates the initial request for the spider
     def start_requests(self):
-        # The URL is constructed using the player's username
+        """
+        Construct the URL using the player's username and yield a scrapy.Request object with the URL as a callback to the parse method.
+        """
         url = f"https://bans.manacube.com/user?user={self.player_username}"
         yield scrapy.Request(url, callback=self.parse)
 
-    # The parse method processes the response from the server
     def parse(self, response):
-        # The response is parsed into a BeautifulSoup object for easy manipulation
+        """
+        Extracts ban records from a website.
+
+        Args:
+            response (scrapy.http.Response): The HTTP response object containing the HTML response from the website.
+
+        Yields:
+            BanItem: Each BanItem object represents a ban record and contains the source website, URL, ban reason, ban date, and expiry date.
+        """
         soup = BeautifulSoup(response.text, "lxml")
+        bans_tab = soup.find("div", class_="tab-pane", id="bans")
+        table = bans_tab.find("table", class_="table table-striped table-profile")
 
-        # The bans tab is located and the ban table is extracted
-        bans_tab = soup.find_all("div", class_="tab-pane", id="bans")
-        table = bans_tab[0].find("table", class_="table table-striped table-profile")
-        if table is not None:
-            # Each row in the table (excluding the header) represents a ban
-            for row in table.find_all("tr")[1:]:  # Skip the header row
+        if table:
+            for row in table.find_all("tr")[1:]:
                 columns = row.find_all("td")[1:]
-
-                # The expiry and ban dates are parsed into timestamp objects
                 expires_date_object = self.parse_date(columns[4].text)
                 ban_date_object = self.parse_date(columns[3].text)
-
-                # The ban reason is extracted
                 ban_reason = columns[0].text
+                translated_reason = (
+                    translate(ban_reason)
+                    if get_language(ban_reason) != "en"
+                    else ban_reason
+                )
 
-                # A BanItem is yielded for each ban
                 yield BanItem(
                     {
                         "source": tldextract.extract(response.url).domain,
                         "url": response.url,
-                        "reason": translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
+                        "reason": translated_reason,
                         "date": ban_date_object,
                         "expires": expires_date_object,
                     }
                 )
 
-    # Helper function to parse a date string into a timestamp
-    def parse_date(self, date_string):
-        # The date string is cleaned and parsed into a datetime object
-        date_string = date_string.replace(AT, "")
-        date_string = re.sub(rf"(\d)({ST}|{ND}|{RD}|{TH})", r"\1", date_string)
+    def parse_date(self, date_string: str) -> int:
+        """
+        Cleans and parses a date string into a timestamp in UTC timezone.
+
+        Args:
+            date_string (str): The date string to be parsed.
+
+        Returns:
+            int: The parsed date as a timestamp in UTC timezone.
+        """
+        # Remove "at" from the date string
+        date_string = date_string.replace("at", "")
+
+        # Remove ordinal indicators (e.g., "st", "nd", "rd", "th") from the date string
+        date_string = re.sub(r"(\d)(st|nd|rd|th)", r"\1", date_string)
+
+        # Remove extra whitespace from the date string
         date_string = " ".join(date_string.split())
-        date_object = int(dateparser.parse(date_string).replace(tzinfo=timezone.utc).timestamp())
-        return date_object
+
+        # Parse the cleaned date string into a datetime object
+        date_object = dateparser.parse(date_string).replace(tzinfo=timezone.utc)
+
+        # Convert the datetime object to a timestamp in UTC timezone
+        timestamp = int(date_object.timestamp())
+
+        return timestamp

@@ -1,10 +1,10 @@
-beautifulsoup4==4.10.0
+beautifulsoup4==4.12.2
 dateparser==1.2.0
 deep_translator==1.11.4
 Flask==3.0.0
 google_api_python_client==2.111.0
 InquirerPy==0.3.4
-protobuf==3.12.4
+protobuf==3.18.3
 pydantic==2.5.3
 python-dotenv==1.0.0
 Requests==2.31.0

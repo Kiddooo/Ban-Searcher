@@ -1,71 +1,119 @@
 import dateparser
 import scrapy
-from bs4 import BeautifulSoup
 import tldextract
+from bs4 import BeautifulSoup
+
 from banlist_project.items import BanItem
 from utils import get_language, translate
 
 # Constants for better readability
 HEADER_ROW_INDEX = 1
 
+
 class SyuuSpider(scrapy.Spider):
-    name = 'SyuuSpider'
+    name = "SyuuSpider"
 
     # Initialize spider with player details
-    def __init__(self, username, player_uuid, player_uuid_dash, *args, **kwargs):
-        super(SyuuSpider, self).__init__(*args, **kwargs)
+    def __init__(
+        self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
+    ):
+        """
+        Initialize the SyuuSpider object.
+
+        Args:
+            username (str): The username of the player.
+            player_uuid (str): The UUID of the player.
+            player_uuid_dash (str): The UUID of the player with dashes.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+        """
+        super().__init__(*args, **kwargs)
+
+        if not all([username, player_uuid, player_uuid_dash]):
+            raise ValueError("Invalid parameters")
+
         self.player_username = username
         self.player_uuid = player_uuid
         self.player_uuid_dash = player_uuid_dash
 
-    # Start requests for the spider
     def start_requests(self):
-        # Construct the URL with player UUID
+        """
+        Construct the URL using the player's UUID, make a request to that URL, and call the parse function when the request is completed.
+        """
         url = f"https://www.syuu.net/user/{self.player_uuid_dash}"
-        # Make a request to the URL and call the parse function when the request is completed
-        yield scrapy.Request(url, callback=self.parse, meta={'flare_solver': True})
+        yield scrapy.Request(url, callback=self.parse, meta={"flare_solver": True})
 
-    # Parse the response from the request
     def parse(self, response):
-        # Parse the HTML response using BeautifulSoup
-        parsed_html = BeautifulSoup(response.text, 'lxml')
-        # Find the punishment table in the parsed HTML
-        punishment_table = parsed_html.find('table', id='punishment-table', class_='table table-bordered')
-        # If the punishment table is found
-        if punishment_table is not None:
-            # Get all rows in the table, skipping the header row
-            rows = punishment_table.find_all('tr')[HEADER_ROW_INDEX:]
-            # Process each row
-            for row in rows:
-                # Skip rows with a class attribute
-                if row.get('class'):
-                    continue
-                # If the row represents a ban
-                if row.find('div').text.lower() == 'ban':
-                    # Get all columns in the row
-                    columns = row.find_all('td')[1:]
-                    # Get the URL of the ban
-                    ban_url = response.urljoin(columns[0].find('a')['href'])
-                    # Make a request to the ban URL and call the parse_ban function when the request is completed
-                    yield scrapy.Request(ban_url, callback=self.parse_ban, meta={'flare_solver': True})
+        """
+        Parse the HTML response and extract relevant information about bans.
 
-    # Parse the response from the ban request
+        Args:
+            response (object): The HTML response from a website.
+
+        Yields:
+            scrapy.Request: A request object to scrape the ban URL.
+        """
+        parsed_html = BeautifulSoup(response.text, "lxml")
+        punishment_table = parsed_html.find(
+            "table", id="punishment-table", class_="table table-bordered"
+        )
+        if punishment_table:
+            rows = punishment_table.find_all("tr")[1:]
+            for row in rows:
+                if row.get("class"):
+                    continue
+                if row.find("div").text.lower() == "ban":
+                    columns = row.find_all("td")[1:]
+                    ban_url = response.urljoin(columns[0].find("a")["href"])
+                    yield scrapy.Request(
+                        ban_url, callback=self.parse_ban, meta={"flare_solver": True}
+                    )
+
     def parse_ban(self, response):
+        """
+        Parse the HTML response and extract ban details.
+
+        Args:
+            response (object): The HTML response from a website.
+
+        Yields:
+            BanItem: Represents a ban record scraped from a website, containing the source website, URL, reason for the ban, date of issue, and expiration date.
+        """
         # Parse the HTML response using BeautifulSoup
-        parsed_html = BeautifulSoup(response.text, 'lxml')
+        parsed_html = BeautifulSoup(response.text, "lxml")
+
         # Find the ban details table in the parsed HTML
-        ban_details_table = parsed_html.find('table', class_='table table-striped')
+        ban_details_table = parsed_html.find("table", class_="table table-striped")
+
         # If the ban details table is found
         if ban_details_table is not None:
             # Get all rows in the table, skipping the header row
-            rows = ban_details_table.find_all('tr')[HEADER_ROW_INDEX:]
+            rows = ban_details_table.find_all("tr")[1:]
+
             # Get the ban reason
-            ban_reason = rows[0].find_all('td')[1].text
-            # Yield a BanItem with the ban details
-            yield BanItem({
-                'source': tldextract.extract(response.url).domain,
-                'url': response.url,
-                'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
-                'date': int(dateparser.parse(rows[2].find_all('td')[1].text).timestamp()),
-                'expires': int(dateparser.parse(rows[3].find_all('td')[1].text).timestamp())
-            })
+            ban_reason = rows[0].find_all("td")[1].text
+
+            # Extract the source URL, translated ban reason, ban date, and expiration date from the respective rows of the table
+            source = tldextract.extract(response.url).domain
+            url = response.url
+            reason = (
+                translate(ban_reason)
+                if get_language(ban_reason) != "en"
+                else ban_reason
+            )
+            date = int(dateparser.parse(rows[2].find_all("td")[1].text).timestamp())
+            expires = int(dateparser.parse(rows[3].find_all("td")[1].text).timestamp())
+
+            # Create a BanItem object with the extracted information
+            ban_item = BanItem(
+                {
+                    "source": source,
+                    "url": url,
+                    "reason": reason,
+                    "date": date,
+                    "expires": expires,
+                }
+            )
+
+            # Yield the BanItem object
+            yield ban_item

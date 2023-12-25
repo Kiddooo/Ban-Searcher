@@ -1,22 +1,49 @@
+import re
+import urllib.parse
+from typing import Any, List, Optional
+
 import dateparser
 import scrapy
-from banlist_project.items import BanItem
-from bs4 import BeautifulSoup
-import urllib.parse
-import re
 import tldextract
-from utils import get_language, translate, logger
+from bs4 import BeautifulSoup
+
+from banlist_project.items import BanItem
+from utils import get_language, logger, translate
+
 
 class LiteBansSpider(scrapy.Spider):
-    name = 'LiteBansSpider'
+    name = "LiteBansSpider"
 
-    def __init__(self, username, player_uuid, player_uuid_dash, *args, **kwargs):
-        super(LiteBansSpider, self).__init__(*args, **kwargs)
+    def __init__(
+        self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
+    ):
+        """
+        Initialize the LiteBansSpider object.
+
+        Args:
+            username (str): The username of the player.
+            player_uuid (str): The UUID of the player.
+            player_uuid_dash (str): The UUID of the player with dashes.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+        """
+        super().__init__(*args, **kwargs)
+
+        if not all([username, player_uuid, player_uuid_dash]):
+            raise ValueError("Invalid parameters")
+
         self.player_username = username
         self.player_uuid = player_uuid
         self.player_uuid_dash = player_uuid_dash
-        self.pattern = re.compile(r".*(\bNon è mai entrato\b)|(\bNo ha entrado al servidor\b)|(\bnot found in database\b)|(\bhas not joined before\b)|(\bEventyrCraftIngen Straffe Fundet\b)|(\bNo se encontraron sanciones.\b)|(\bno existe\b).*", flags=re.IGNORECASE)
+        self.pattern = re.compile(
+            r".*(\bNon è mai entrato\b)|(\bNo ha entrado al servidor\b)|(\bnot found in database\b)|(\bhas not joined before\b)|(\bEventyrCraftIngen Straffe Fundet\b)|(\bNo se encontraron sanciones.\b)|(\bno existe\b).*",
+            flags=re.IGNORECASE,
+        )
+
     def start_requests(self):
+        """
+        Generate a list of URLs and make HTTP requests to each URL using Scrapy.
+        """
         urls = [
             "http://diemeesmcbans.nl/bans/history.php?uuid=",
             "http://prestigebans.xyz/history.php?uuid=",
@@ -43,7 +70,7 @@ class LiteBansSpider(scrapy.Spider):
             "https://bans.siriusmc.net/history.php?uuid=",
             "https://bans.skykingdoms.net/history.php?uuid=",
             "https://bans.skyversecraft.eu/history.php?uuid=",
-            "https://bans.sootmc.net/history.php?uuid="
+            "https://bans.sootmc.net/history.php?uuid=",
             "https://bans.truesmp.org/history.php?uuid=",
             "https://bans.unitedfactions.net/history.php?uuid=",
             "https://bans.valatic.net/history.php?uuid=",
@@ -85,7 +112,7 @@ class LiteBansSpider(scrapy.Spider):
             "https://www.paladia.net/history.php?uuid=",
             "https://www.roxbot.com/bans/history.php?uuid=",
             "https://www.staxified.net/litebans/history.php?uuid=",
-            ]
+        ]
         for url in urls:
             url = url + self.player_uuid
             yield scrapy.Request(url, callback=self.parse)
@@ -98,67 +125,180 @@ class LiteBansSpider(scrapy.Spider):
             "https://punishments.baconetworks.com/history?uuid=",
             "https://play.hellominers.com/bans/history.php?uuid=",
             "https://nytro.co/bans/history.php?uuid=",
-            "https://www.pickaxemania.com/playerstatus/history.php?uuid="
+            "https://www.pickaxemania.com/playerstatus/history.php?uuid=",
         ]
         for url in urls2:
             url = url + self.player_uuid_dash
             if "saicopvp" in url:
-                yield scrapy.Request(url, callback=self.parse, meta={'flare_solver': True})
+                yield scrapy.Request(
+                    url, callback=self.parse, meta={"flare_solver": True}
+                )
             else:
                 yield scrapy.Request(url, callback=self.parse)
 
+    class LiteBansSpider:
+        def parse(self, response):
+            """
+            Parse the response from a website and extract relevant information from the HTML table.
+            Handles pagination by recursively calling itself to parse the next page.
 
-    def parse(self, response):
-        soup = BeautifulSoup(response.text, 'lxml')
-        
-        if soup.find_all(string="No punishments found."):
-            return
+            Args:
+                response (scrapy.Response): The response object containing the HTML content of the website.
 
-        if self.pattern.search(soup.text):
-            return
+            Yields:
+                dict: A ban object for each row in the table that corresponds to a ban or porttikielto.
+            """
+            soup = BeautifulSoup(response.text, "lxml")
 
-        table = soup.find('table')
-        if table is not None:
-            header_row = table.find('tr')  # Adjust this as needed
-            headers = [cell.text.strip().lower() for cell in header_row.find_all('th')]
-            print(headers)
-            # Translate headers to standard keys
-            headers = [self.translate_header('reason', header) or self.translate_header('date', header) or self.translate_header('expires', header) for header in headers]
-            # Find the indices of the cells we're interested in
-            reason_index = headers.index('reason')  # Adjust these as needed
-            date_index = headers.index('date')
-            expiry_index = headers.index('expires')
+            if soup.find_all(string="No punishments found."):
+                return
 
-            
-            for row in table.find_all('tr')[1:]: # Skip the header row
-                columns = row.find_all('td')
-                ban_type = columns[0].text.strip()
-                if ban_type.lower() in ['ban', 'porttikielto']:
-                    ban = self.generate_ban(columns, response.url, reason_index, date_index, expiry_index)
-                    yield ban
-                else:
-                    continue
-                                        
+            if self.pattern.search(soup.text):
+                return
 
-            # Find the div with pagination information
-            page_info_div = soup.find('div', class_='litebans-pager-number')
-            if not page_info_div:
-                page_info_div = soup.find('div', style="text-align: center; font-size:15px;")
-            if page_info_div:
-                page_info_text = page_info_div.get_text()
-                current_page, total_pages = map(int, re.findall(r'\d+', page_info_text))
-                
-                # Check if you're on the last page
-                if current_page < total_pages:
-                    next_page = soup.find("div", class_="litebans-pager litebans-pager-right litebans-pager-active")
-                    if next_page and next_page.parent.name == 'a':  # Ensure it's an anchor tag for a valid URL
-                        next_page_url = urllib.parse.urljoin(response.url, next_page.parent['href'])
-                        if "saicopvp" in next_page_url:
-                            yield scrapy.Request(next_page_url, callback=self.parse, meta={'flare_solver': True})
-                        else: 
+            table = soup.find("table")
+            if table is not None:
+                headers = self.extract_headers(table)
+                reason_index, date_index, expiry_index = self.find_indices(headers)
+
+                for row in table.find_all("tr")[1:]:  # Skip the header row
+                    columns = row.find_all("td")
+                    ban_type = columns[0].text.strip()
+                    if ban_type.lower() in ["ban", "porttikielto"]:
+                        ban = self.generate_ban(
+                            columns,
+                            response.url,
+                            reason_index,
+                            date_index,
+                            expiry_index,
+                        )
+                        yield ban
+
+                page_info_div = soup.find("div", class_="litebans-pager-number")
+                if not page_info_div:
+                    page_info_div = soup.find(
+                        "div", style="text-align: center; font-size:15px;"
+                    )
+                if page_info_div:
+                    current_page, total_pages = self.extract_pagination_info(
+                        page_info_div
+                    )
+
+                    if current_page < total_pages:
+                        next_page_url = self.find_next_page_url(response.url, soup)
+                        if next_page_url:
                             yield scrapy.Request(next_page_url, callback=self.parse)
 
-    def generate_ban(self, columns, url, reason_index, date_index, expiry_index):
+        def extract_headers(self, table):
+            """
+            Extract the headers from the table and convert them to lowercase.
+
+            Args:
+                table (bs4.element.Tag): The HTML table element.
+
+            Returns:
+                list: The lowercase headers.
+            """
+            header_row = table.find("tr")
+            headers = [cell.text.strip().lower() for cell in header_row.find_all("th")]
+            return headers
+
+        def find_indices(self, headers):
+            """
+            Find the indices of the cells corresponding to the reason, date, and expiry columns.
+
+            Args:
+                headers (list): The lowercase headers.
+
+            Returns:
+                tuple: The indices of the reason, date, and expiry columns.
+            """
+            reason_index = headers.index("reason")
+            date_index = headers.index("date")
+            expiry_index = headers.index("expires")
+            return reason_index, date_index, expiry_index
+
+        def generate_ban(self, columns, url, reason_index, date_index, expiry_index):
+            """
+            Generate a ban object using the columns.
+
+            Args:
+                columns (list): The columns of a row in the table.
+                url (str): The URL of the website.
+                reason_index (int): The index of the reason column.
+                date_index (int): The index of the date column.
+                expiry_index (int): The index of the expiry column.
+
+            Returns:
+                dict: The ban object.
+            """
+            ban = {
+                "reason": columns[reason_index].text.strip(),
+                "date": columns[date_index].text.strip(),
+                "expiry": columns[expiry_index].text.strip(),
+                "url": url,
+            }
+            return ban
+
+        def extract_pagination_info(self, page_info_div):
+            """
+            Extract the current page number and total number of pages from the pagination information.
+
+            Args:
+                page_info_div (bs4.element.Tag): The div element containing the pagination information.
+
+            Returns:
+                tuple: The current page number and total number of pages.
+            """
+            page_info_text = page_info_div.get_text()
+            current_page, total_pages = map(int, re.findall(r"\d+", page_info_text))
+            return current_page, total_pages
+
+        def find_next_page_url(self, current_url, soup):
+            """
+            Find the URL of the next page.
+
+            Args:
+                current_url (str): The URL of the current page.
+                soup (BeautifulSoup): The BeautifulSoup object of the current page.
+
+            Returns:
+                str: The URL of the next page, or None if not found.
+            """
+            next_page = soup.find(
+                "div",
+                class_="litebans-pager litebans-pager-right litebans-pager-active",
+            )
+            if next_page and next_page.parent.name == "a":
+                next_page_url = urllib.parse.urljoin(
+                    current_url, next_page.parent["href"]
+                )
+                if "saicopvp" in next_page_url:
+                    return next_page_url
+                else:
+                    return next_page_url
+
+    def generate_ban(
+        self,
+        columns: List[Any],
+        url: str,
+        reason_index: int,
+        date_index: int,
+        expiry_index: int,
+    ) -> BanItem:
+        """
+        Extracts ban information from table columns and creates a BanItem object.
+
+        Args:
+            columns (List[Any]): The columns of a table row containing the ban information.
+            url (str): The URL of the website where the ban information is extracted from.
+            reason_index (int): The index of the column containing the ban reason.
+            date_index (int): The index of the column containing the ban date.
+            expiry_index (int): The index of the column containing the ban expiry.
+
+        Returns:
+            BanItem: The BanItem object containing the extracted ban information.
+        """
         ban_reason = columns[reason_index].text
         ban_date = columns[date_index].text
         ban_expiry = columns[expiry_index].text
@@ -172,7 +312,7 @@ class LiteBansSpider(scrapy.Spider):
                     ban_expires = int(dateparser.parse(ban_expiry).timestamp())
                 except ValueError:
                     logger.error("Failed to parse ban expiry:", ban_expiry)
-                    ban_expires = 'N/A'
+                    ban_expires = "N/A"
 
             ban_date_text = ban_date.replace("klo", "").split(" (")[0].strip()
             try:
@@ -182,94 +322,83 @@ class LiteBansSpider(scrapy.Spider):
                 ban_date = "N/A"
 
             ban_reason = ban_reason.encode("ascii", "ignore").decode()
-            ban = BanItem({
-                'source': tldextract.extract(url).domain,
-                'url': url,
-                'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
-                'date': ban_date,
-                'expires': ban_expires
-            })
+            ban = BanItem(
+                {
+                    "source": tldextract.extract(url).domain,
+                    "url": url,
+                    "reason": translate(ban_reason)
+                    if get_language(ban_reason) != "en"
+                    else ban_reason,
+                    "date": ban_date,
+                    "expires": ban_expires,
+                }
+            )
 
             return ban
         except Exception as e:
             raise Exception(f"Failed to generate ban: {e}") from e
 
-    def translate_month(self, date_string):
-        spanish_to_english = {
-            'enero': 'January',
-            'febrero': 'February',
-            'marzo': 'March',
-            'abril': 'April',
-            'mayo': 'May',
-            'junio': 'June',
-            'julio': 'July',
-            'agosto': 'August',
-            'septiembre': 'September',
-            'octubre': 'October',
-            'noviembre': 'November',
-            'diciembre': 'December'
-        }
-        for spanish, english in spanish_to_english.items():
-            date_string = date_string.replace(spanish, english)
-        return date_string
+    def translate_header(self, type: str, header: str) -> Optional[str]:
+        """
+        Translates the header names in different languages.
 
-    def translate_header(self, type, header):
+        Args:
+            type (str): The type of header to translate ('reason', 'date', 'expires').
+            header (str): The header name to be translated.
+
+        Returns:
+            str: The translated header type or None if no translation is found.
+        """
         header = header.lower()
-        reason_translations = {
-            'en': ['reason'],
-            'es': ['motivo', 'razón'],   # Spanish
-            'de': ['grund'],             # German
-            'fi': ['syy'],               # Finnish
-            'it': ['motivazione'],       # Italian
-            'fr': ['raison'],            # French
-            'pt': ['motivo', 'razão'],   # Portuguese
-            'ru': ['причина'],          # Russian
-            'ja': ['理由'],             # Japanese
-            'zh': ['原因'],             # Chinese
-            'ar': ['سبب'],              # Arabic
-            'dk': ['grund']             # Danish
-            # Add more translations as needed
-        }
-        date_translations = {
-            'en': ['date', 'when', 'banned on'],
-            'es': ['fecha'],  # Spanish
-            'de': ['datum'],  # German
-            'fi': ['päivämäärä'],  # Finnish
-            'it': ['data'],  # Italian
-            'fr': ['date'],  # French
-            'pt': ['data'],  # Portuguese
-            'ru': ['дата'],  # Russian
-            'ja': ['日付'],  # Japanese
-            'zh': ['日期'],  # Chinese
-            'ar': ['تاريخ'],# Arabic
-            'dk': ['dato']   # Danish
-            # Add more translations as needed
-        }
-        expiry_translations = {
-            'en': ['expires', 'banned until'],
-            'es': ['expira'],  # Spanish
-            'de': ['ablauf'],  # German
-            'fi': ['vanhenee'],  # Finnish
-            'it': ['scadenza'],  # Italian
-            'fr': ['expire'],  # French
-            'pt': ['expira'],  # Portuguese
-            'ru': ['истекает'],  # Russian
-            'ja': ['有効期限'],  # Japanese
-            'zh': ['到期'],  # Chinese
-            'ar': ['تنتهي'],# Arabic
-            'dk': ['udløber']   # Danish
-            # Add more translations as needed
-        }
-        
+
         translations = {
-            'reason': reason_translations,
-            'date': date_translations,
-            'expires': expiry_translations,
+            "reason": {
+                "en": ["reason"],
+                "es": ["motivo", "razón"],
+                "de": ["grund"],
+                "fi": ["syy"],
+                "it": ["motivazione"],
+                "fr": ["raison"],
+                "pt": ["motivo", "razão"],
+                "ru": ["причина"],
+                "ja": ["理由"],
+                "zh": ["原因"],
+                "ar": ["سبب"],
+                "dk": ["grund"],
+            },
+            "date": {
+                "en": ["date", "when", "banned on"],
+                "es": ["fecha"],
+                "de": ["datum"],
+                "fi": ["päivämäärä"],
+                "it": ["data"],
+                "fr": ["date"],
+                "pt": ["data"],
+                "ru": ["дата"],
+                "ja": ["日付"],
+                "zh": ["日期"],
+                "ar": ["تاريخ"],
+                "dk": ["dato"],
+            },
+            "expires": {
+                "en": ["expires", "banned until"],
+                "es": ["expira"],
+                "de": ["ablauf"],
+                "fi": ["vanhenee"],
+                "it": ["scadenza"],
+                "fr": ["expire"],
+                "pt": ["expira"],
+                "ru": ["истекает"],
+                "ja": ["有効期限"],
+                "zh": ["到期"],
+                "ar": ["تنتهي"],
+                "dk": ["udløber"],
+            },
         }
-        
+
         for key, value in translations.items():
-            for _lang, terms in value.items():
+            for lang, terms in value.items():
                 if header in terms:
                     return key
-        
+
         return None

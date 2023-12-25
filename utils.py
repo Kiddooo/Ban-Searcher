@@ -1,27 +1,29 @@
+import logging
 import os
+
 import requests
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
 from deep_translator import GoogleTranslator, single_detection
-import logging
+from dotenv import load_dotenv
 
 load_dotenv()
-DETECTLANGUAGE_API_KEY = os.getenv('DETECTLANGUAGE_API_KEY')
-FLARESOLVER_URL = 'http://localhost:8191/v1'
+DETECTLANGUAGE_API_KEY = os.getenv("DETECTLANGUAGE_API_KEY")
+FLARESOLVER_URL = "http://localhost:8191/v1"
 
-logger = logging.getLogger('Ban-Scraper')
+logger = logging.getLogger("Ban-Scraper")
 logger.setLevel(logging.INFO)
 handler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
 
 def get_language(text: str) -> str:
     """
     Detects the language of a given text using an API key.
 
     Args:
-        text (str): The text for which the language needs to be detected.  
+        text (str): The text for which the language needs to be detected.
         api_key (str): The API key for language detection.
 
     Returns:
@@ -30,17 +32,18 @@ def get_language(text: str) -> str:
     try:
         if not text:
             return "Text argument is empty"
-        
+
         if not isinstance(text, str):
             raise TypeError("The 'text' argument must be a string.")
-        
+
         # Detect language with the provided API key
         detected_lang = single_detection(text, api_key=DETECTLANGUAGE_API_KEY)
         return detected_lang
     except Exception as e:
         return "Language detection failed: " + str(e)
 
-def translate(text: str, from_lang: str = 'auto', to_lang: str = 'en') -> str:
+
+def translate(text: str, from_lang: str = "auto", to_lang: str = "en") -> str:
     """
     Translates text from one language to another using the GoogleTranslator class from the deep_translator library.
 
@@ -67,6 +70,7 @@ def translate(text: str, from_lang: str = 'auto', to_lang: str = 'en') -> str:
     except Exception as e:
         return "Translation failed: " + str(e)
 
+
 def get_player_skins(username=None, uuid=None):
     """
     Retrieves skin IDs associated with a Minecraft player's profile.
@@ -78,28 +82,28 @@ def get_player_skins(username=None, uuid=None):
     Returns:
         list: A list of skin IDs associated with the Minecraft player's profile.
     """
-    base_url = 'https://namemc.com/profile/'
+    base_url = "https://namemc.com/profile/"
     profile_url = f"{base_url}{username or uuid}"
 
     # Simplified headers and data dictionary
-    headers = {'Content-Type': 'application/json'}
+    headers = {"Content-Type": "application/json"}
     data = {"cmd": "request.get", "url": profile_url, "maxTimeout": 60000}
 
     # Post request using a shorter timeout syntax
-    response = requests.post(
-        FLARESOLVER_URL, json=data, headers=headers, timeout=60
-    )
+    response = requests.post(FLARESOLVER_URL, json=data, headers=headers, timeout=60)
 
     # Get the HTML content from the response
-    html_content = response.json().get('solution', {}).get('response', '')
+    html_content = response.json().get("solution", {}).get("response", "")
 
     # Parse the content using BeautifulSoup
-    soup = BeautifulSoup(html_content, 'html.parser')
+    soup = BeautifulSoup(html_content, "html.parser")
 
     # Get the script tags that contain skin IDs
     skin_scripts = soup.select('script[src*="s.namemc.com/i/"]')[:-1]
 
     # Extract skin IDs from the script tags
-    skin_ids = [script['src'].split('/')[-1].replace('.js', '') for script in skin_scripts]
+    skin_ids = [
+        script["src"].split("/")[-1].replace(".js", "") for script in skin_scripts
+    ]
 
     return skin_ids

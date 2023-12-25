@@ -1,5 +1,6 @@
 import scrapy
 
+
 class BanItem(scrapy.Item):
     """
     BanItem represents a ban record scraped from a website.
@@ -11,6 +12,7 @@ class BanItem(scrapy.Item):
         date: The date when the ban was issued.
         expires: The date when the ban expires.
     """
+
     source = scrapy.Field()
     url = scrapy.Field()
     reason = scrapy.Field()
@@ -25,9 +27,9 @@ class BanItem(scrapy.Item):
             A dictionary with the same fields as the BanItem.
         """
         return {
-            'source': self['source'],
-            'url': self['url'],
-            'reason': self['reason'],
-            'date': self['date'],
-            'expires': self['expires']
+            "source": self["source"],
+            "url": self["url"],
+            "reason": self["reason"],
+            "date": self["date"],
+            "expires": self["expires"],
         }

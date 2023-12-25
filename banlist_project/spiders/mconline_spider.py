@@ -1,49 +1,83 @@
 import scrapy
 import tldextract
+
 from banlist_project.items import BanItem
-from utils import get_language, translate, logger
+from utils import get_language, logger, translate
 
 # Constants
 URL_TEMPLATE = "https://minecraftonline.com/cgi-bin/getplayerinfo?"
 
-class MCOnlineSpider(scrapy.Spider):
-    """
-    A Scrapy Spider that scrapes player information from minecraftonline.com.
-    """
-    name = 'MCOnlineSpider'
 
-    def __init__(self, username, player_uuid, player_uuid_dash, *args, **kwargs):
+class MCOnlineSpider(scrapy.Spider):
+    name = "MCOnlineSpider"
+
+    def __init__(
+        self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
+    ):
         """
-        Initialize the spider with the player's username and UUIDs.
+        Initialize the MCOnlineSpider object.
+
+        Args:
+            username (str): The username of the player.
+            player_uuid (str): The UUID of the player.
+            player_uuid_dash (str): The UUID of the player with dashes.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
         """
-        super(MCOnlineSpider, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+
+        if not all([username, player_uuid, player_uuid_dash]):
+            raise ValueError("Invalid parameters")
+
         self.player_username = username
         self.player_uuid = player_uuid
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
         """
-        This method generates the initial request to scrape player information.
+        Generates a Scrapy Request object to scrape player information from a website.
+
+        Returns:
+            Request: A Scrapy Request object with the URL and callback function.
         """
-        url = f"{URL_TEMPLATE}{self.player_username}"
+        url = URL_TEMPLATE + self.player_username
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
         """
-        This method parses the response from the server and yields a BanItem.
+        Parse the response received from a website and extract relevant information to create a BanItem object.
+
+        Args:
+            response (scrapy.http.Response): The response object received from a website.
+
+        Yields:
+            BanItem: A BanItem object containing the parsed ban information.
         """
         try:
             # Split the response text by line and semicolon
-            _ban = response.text.split("\n")[3:-1][0].split(';')
+            ban_info = response.text.split("\n")[3:-1][0].split(";")
+
+            # Extract the relevant information
+            source = tldextract.extract(response.url).domain
+            url = response.url
+            date = int(ban_info[1])
+            reason = (
+                translate(ban_info[2])
+                if get_language(ban_info[2]) != "en"
+                else ban_info[2]
+            )
+            expires = "N/A"
 
             # Yield a new BanItem with the parsed information
-            yield BanItem({
-                'source': tldextract.extract(response.url).domain,
-                'url': response.url,
-                'date': int(_ban[1]),
-                'reason': translate(_ban[2]) if get_language(_ban[2]) != 'en' else _ban[2],
-                'expires': 'N/A'
-            })
+            yield BanItem(
+                {
+                    "source": source,
+                    "url": url,
+                    "date": date,
+                    "reason": reason,
+                    "expires": expires,
+                }
+            )
         except IndexError:
             # Log a message if an error occurs
             logger.error(f"Error parsing response for player: {self.player_username}")

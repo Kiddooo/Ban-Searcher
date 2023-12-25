@@ -1,48 +1,80 @@
 import dateparser
 import scrapy
-from banlist_project.items import BanItem
-from bs4 import BeautifulSoup
 import tldextract
+from bs4 import BeautifulSoup
+
+from banlist_project.items import BanItem
 from utils import get_language, translate
 
-class DemocracycraftSpider(scrapy.Spider):
-    name = 'DemocracycraftSpider'
 
-    def __init__(self, username, player_uuid, player_uuid_dash, *args, **kwargs):
-        super(DemocracycraftSpider, self).__init__(*args, **kwargs)
+class DemocracycraftSpider(scrapy.Spider):
+    name = "DemocracycraftSpider"
+
+    def __init__(
+        self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
+    ):
+        """
+        Initialize the DemocracycraftSpider object.
+
+        Args:
+            username (str): The username of the player.
+            player_uuid (str): The UUID of the player.
+            player_uuid_dash (str): The UUID of the player with dashes.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+        """
+        super().__init__(*args, **kwargs)
+
+        if not all([username, player_uuid, player_uuid_dash]):
+            raise ValueError("Invalid parameters")
+
         self.player_username = username
         self.player_uuid = player_uuid
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        # Construct the URL using the player's username
+        """
+        Construct the URL using the player's username and yield a scrapy.Request object with the URL as a callback to the parse method.
+        """
         url = f"https://www.democracycraft.net/logs/user/{self.player_username}"
-        yield scrapy.Request(url, callback=self.parse, meta={'dont_redirect': True})
+        yield scrapy.Request(url, callback=self.parse, meta={"dont_redirect": True})
 
     def parse(self, response):
-        # Parse the HTML response using BeautifulSoup
-        soup = BeautifulSoup(response.text, 'lxml')
+        """
+        Parse the HTML response and extract ban records.
 
-        # Find the table with class 'results'
-        table = soup.find('table', class_='results')
+        Args:
+            response (scrapy.http.Response): The HTML response received from the website.
 
-        # If the table exists, process each row (skipping the header)
+        Yields:
+            BanItem: A BanItem object for each ban record found in the HTML response.
+        """
+        soup = BeautifulSoup(response.text, "lxml")
+        table = soup.find("table", class_="results")
+
         if table is not None:
-            for row in table.find_all('tr')[1:]:
-                columns = row.find_all('td')[1:]
+            for row in table.find_all("tr")[1:]:
+                columns = row.find_all("td")[1:]
 
-                # Parse the ban and expiry dates, handling 'Never' as 'Permanent'
-                expires_date_object = 'Permanent' if columns[3].text.strip() == 'Never' else  int(dateparser.parse(columns[3].text).timestamp())
-                ban_date_object = int(dateparser.parse(columns[2].text).timestamp())
+                expires_date = columns[3].text.strip()
+                ban_date = columns[2].text.strip()
+                ban_reason = columns[1].text.strip()
 
-                # Extract the ban reason
-                ban_reason = columns[1].text
+                if expires_date == "Never":
+                    expires_date = "Permanent"
+                else:
+                    expires_date = int(dateparser.parse(expires_date).timestamp())
 
-                # Yield a new BanItem with the extracted data
-                yield BanItem({
-                    'source': tldextract.extract(response.url).domain,
-                    'url': response.url,
-                    'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
-                    'date': ban_date_object,
-                    'expires': expires_date_object
-                })
+                ban_date = int(dateparser.parse(ban_date).timestamp())
+
+                yield BanItem(
+                    {
+                        "source": tldextract.extract(response.url).domain,
+                        "url": response.url,
+                        "reason": translate(ban_reason)
+                        if get_language(ban_reason) != "en"
+                        else ban_reason,
+                        "date": ban_date,
+                        "expires": expires_date,
+                    }
+                )

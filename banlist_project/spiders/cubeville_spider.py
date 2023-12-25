@@ -1,30 +1,49 @@
-import scrapy
-from banlist_project.items import BanItem
+import datetime
+from typing import Union
+
 import dateparser
+import scrapy
 import tldextract
-from bs4 import BeautifulSoup
+
+from banlist_project.items import BanItem
 from utils import get_language, translate
 
-# Define constants
-PERMANENT = "permanent"
 
 class CubevilleSpider(scrapy.Spider):
     """Spider for Cubeville"""
-    name = 'CubevilleSpider'
 
-    def __init__(self, username, player_uuid, player_uuid_dash, *args, **kwargs):
-        """Initialize spider with username and UUIDs"""
-        super(CubevilleSpider, self).__init__(*args, **kwargs)
+    name = "CubevilleSpider"
+
+    def __init__(
+        self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
+    ):
+        """
+        Initialize the CubevilleSpider object.
+
+        Args:
+            username (str): The username of the player.
+            player_uuid (str): The UUID of the player.
+            player_uuid_dash (str): The UUID of the player with dashes.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+        """
+        super().__init__(*args, **kwargs)
+
+        if not all([username, player_uuid, player_uuid_dash]):
+            raise ValueError("Invalid parameters")
+
         self.player_username = username
         self.player_uuid = player_uuid
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
         """
-        Start requests by constructing URL with username.
-        This function is called by Scrapy when the spider is opened.
+        Generate the initial requests to scrape the banlist page for a specific player on the Cubeville website.
+
+        Returns:
+            A generator object that yields Scrapy `Request` objects.
         """
-        url = "https://www.cubeville.org/cv-site/banlist.php/" + self.player_username
+        url = f"https://www.cubeville.org/cv-site/banlist.php/{self.player_username}"
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
@@ -32,47 +51,72 @@ class CubevilleSpider(scrapy.Spider):
         Parse response from request.
         This function is called by Scrapy with the response of the request made in start_requests.
         """
-        # Parse the response text with BeautifulSoup
-        soup = BeautifulSoup(response.text, "lxml")
-        # Find all tables in the parsed HTML
-        table = soup.find_all("table")
-        # Iterate over each row in the first table, skipping the header row
-        for row in table[0].find_all("tr")[1:]:
+        # Find the first table in the parsed HTML
+        table = response.css("table").get()
+        # Filter rows using Scrapy selectors
+        rows = table.select("tr:has(td:contains('" + self.player_username + "'))")
+        # Iterate over each filtered row
+        for row in rows:
             # Find all columns in the row
-            columns = row.find_all("td")
-            # If the first column matches the player username
-            if columns[0].text == self.player_username:
-                # Parse the ban date
-                banned_at = dateparser.parse(columns[1].text)
-                # Get the ban duration text
-                ban_duration_text = columns[3].text.strip()
-                # Calculate the ban expiration date
-                ban_expires = self.get_ban_expires(ban_duration_text, banned_at)
-                # Get the ban reason
-                ban_reason = columns[2].text
-                # Yield a BanItem for each ban
-                yield self.create_ban_item(response, ban_reason, banned_at, ban_expires)
+            columns = row.css("td")
+            # Parse the ban date and ban duration text
+            banned_at, ban_duration_text = (
+                dateparser.parse(columns[1].get().text),
+                columns[3].get().text.strip(),
+            )
+            # Calculate the ban expiration date
+            ban_expires = self.get_ban_expires(ban_duration_text, banned_at)
+            # Get the ban reason
+            ban_reason = columns[2].get().text
+            # Yield a BanItem for each ban
+            yield self.create_ban_item(response, ban_reason, banned_at, ban_expires)
 
-    def get_ban_expires(self, ban_duration_text, banned_at):
+    def get_ban_expires(
+        self, ban_duration_text: str, banned_at: datetime
+    ) -> Union[str, int]:
         """
-        Calculate ban expiration date.
-        If the ban is permanent, return "Permanent".
-        Otherwise, parse the ban duration text to calculate the expiration date.
+        Calculates the expiration date of a ban based on the ban duration text and the date the ban was issued.
+
+        Args:
+            ban_duration_text (str): The duration of the ban, e.g. "7 days".
+            banned_at (datetime): The date and time the ban was issued.
+
+        Returns:
+            Union[str, int]: The expiration date of the ban, either as the string "Permanent" or as an integer timestamp.
         """
-        if ban_duration_text == PERMANENT:
+        if ban_duration_text == "permanent":
             return "Permanent"
         else:
-            return int(dateparser.parse(f"in {ban_duration_text}", settings={"RELATIVE_BASE": banned_at}).timestamp())
+            expiration_date = dateparser.parse(
+                f"in {ban_duration_text}", settings={"RELATIVE_BASE": banned_at}
+            )
+            return int(expiration_date.timestamp())
 
     def create_ban_item(self, response, ban_reason, banned_at, ban_expires):
         """
-        Create and return a BanItem.
-        A BanItem includes the source, URL, reason, date, and expiration of the ban.
+        Create a BanItem object representing a ban record scraped from a website.
+
+        Args:
+            response (object): The response object from the web scraping request.
+            ban_reason (str): The reason for the ban.
+            banned_at (datetime): The date and time the ban was issued.
+            ban_expires (Union[str, int]): The expiration date of the ban, either as the string "Permanent" or as an integer timestamp.
+
+        Returns:
+            BanItem: The created BanItem object with the specified fields.
         """
-        return BanItem({
-            'source': tldextract.extract(response.url).domain,
-            'url': response.url,
-            'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
-            'date': int(banned_at.timestamp()),
-            'expires': ban_expires,
-        })
+        domain = tldextract.extract(response.url).domain
+        reason = (
+            translate(ban_reason) if get_language(ban_reason) != "en" else ban_reason
+        )
+        date = int(banned_at.timestamp())
+
+        return BanItem(
+            {
+                "source": domain,
+                "url": response.url,
+                "reason": reason,
+                "date": date,
+                "expires": ban_expires,
+            }
+        )

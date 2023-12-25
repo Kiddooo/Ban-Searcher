@@ -1,58 +1,105 @@
-import scrapy
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin
-import tldextract
 import dateparser
+import scrapy
+import tldextract
+from bs4 import BeautifulSoup
+
 from banlist_project.items import BanItem
 from utils import get_language, translate
 
 BASE_URL = "https://mcbouncer.com/u/{}/bansFor"
 
-class MCBouncerSpider(scrapy.Spider):
-    name = 'MCBouncerSpider'
 
-    def __init__(self, username, player_uuid, player_uuid_dash, *args, **kwargs):
-        super(MCBouncerSpider, self).__init__(*args, **kwargs)
+class MCBouncerSpider(scrapy.Spider):
+    name = "MCBouncerSpider"
+
+    def __init__(
+        self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
+    ):
+        """
+        Initialize the MCBouncerSpider object.
+
+        Args:
+            username (str): The username of the player.
+            player_uuid (str): The UUID of the player.
+            player_uuid_dash (str): The UUID of the player with dashes.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+        """
+        super().__init__(*args, **kwargs)
+
+        if not all([username, player_uuid, player_uuid_dash]):
+            raise ValueError("Invalid parameters")
+
         self.player_username = username
         self.player_uuid = player_uuid
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
+        """
+        Generate the initial request to scrape data from a website.
+
+        Returns:
+            A generator that yields scrapy.Request objects with the URL and callback function.
+        """
         url = BASE_URL.format(self.player_uuid)
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
-        parsed_html = BeautifulSoup(response.text, 'lxml')
+        """
+        Parse the response and extract data from it.
+
+        Args:
+            response (scrapy.Response): The response object containing the HTML content of the page to be parsed.
+
+        Yields:
+            scrapy.Request: A new request to the next page.
+        """
+        parsed_html = BeautifulSoup(response.text, "lxml")
 
         while True:
             self.parse_table(parsed_html, response)
 
-            # Find the "Next" button and its parent li element
-            next_button = parsed_html.find('a', string='»')
+            next_button = parsed_html.find("a", string="»")
             if next_button is not None:
-                next_button_parent = next_button.find_parent('li')
+                next_button_parent = next_button.find_parent("li")
 
-                # If the parent li element has the "disabled" class, it means that there are no more pages
-                if 'disabled' in next_button_parent.get('class', []):
+                if "disabled" in next_button_parent.get("class", []):
                     break
 
-                # Join the base URL with the href of the next page to get the full URL of the next page
-                next_page_url = urljoin(response.url, next_button['href'])
-
-                # Yield a new request to the next page
+                next_page_url = response.urljoin(next_button["href"])
                 yield scrapy.Request(next_page_url, callback=self.parse)
+            else:
+                break
 
-    def parse_table(self, parsed_html, response):
-        table = parsed_html.find('table')
+    def parse_table(self, parsed_html: BeautifulSoup, response: scrapy.Response):
+        """
+        Extracts data from a table in the HTML response.
+
+        Args:
+            parsed_html (BeautifulSoup): The parsed HTML content of the page.
+            response (scrapy.Response): The response object containing the HTML content of the page to be parsed.
+
+        Yields:
+            BanItem: A BanItem object with the extracted data from each row in the table.
+        """
+        table = parsed_html.find("table")
         if table is not None:
-            for row in table.find_all('tr')[1:]:  # Skip the header row
-                columns = row.find_all('td')
+            for row in table.find_all("tr")[1:]:  # Skip the header row
+                columns = row.find_all("td")
 
                 ban_reason = columns[1].text
-                yield BanItem({
-                    'source': tldextract.extract(response.url).domain,
-                    'url': response.url,
-                    'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
-                    'date': int(dateparser.parse(columns[2].text.replace('\xa0', " ")).timestamp()),
-                    'expires': 'N/A'
-                })
+                yield BanItem(
+                    {
+                        "source": tldextract.extract(response.url).domain,
+                        "url": response.url,
+                        "reason": translate(ban_reason)
+                        if get_language(ban_reason) != "en"
+                        else ban_reason,
+                        "date": int(
+                            dateparser.parse(
+                                columns[2].text.replace("\xa0", " ")
+                            ).timestamp()
+                        ),
+                        "expires": "N/A",
+                    }
+                )

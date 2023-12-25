@@ -3,7 +3,7 @@ BOT_NAME = "banlist_project"
 SPIDER_MODULES = ["banlist_project.spiders"]
 NEWSPIDER_MODULE = "banlist_project.spiders"
 
-LOG_LEVEL = 'WARNING'
+LOG_LEVEL = "WARNING"
 
 RETRY_TIMES = 1
 
@@ -21,7 +21,7 @@ DOWNLOADER_MIDDLEWARES = {
 }
 
 ITEM_PIPELINES = {
-    'banlist_project.pipelines.BanPipeline': 300,
+    "banlist_project.pipelines.BanPipeline": 300,
 }
 
 AUTOTHROTTLE_ENABLED = True

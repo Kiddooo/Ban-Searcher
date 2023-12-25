@@ -1,55 +1,106 @@
 import dateparser
 import scrapy
-from bs4 import BeautifulSoup
 import tldextract
+from bs4 import BeautifulSoup
+
 from banlist_project.items import BanItem
 from utils import get_language, translate
 
 BAN_STATUS_LENGTH_NOT_BANNED = 2
 BAN_STATUS_LENGTH_BANNED = 3
 
-class StrongcraftSpider(scrapy.Spider):
-    name = 'StrongcraftSpider'
 
-    def __init__(self, username, player_uuid, player_uuid_dash, *args, **kwargs):
-        super(StrongcraftSpider, self).__init__(*args, **kwargs)
+class StrongcraftSpider(scrapy.Spider):
+    name = "StrongcraftSpider"
+
+    def __init__(
+        self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
+    ):
+        """
+        Initialize the StrongcraftSpider object.
+
+        Args:
+            username (str): The username of the player.
+            player_uuid (str): The UUID of the player.
+            player_uuid_dash (str): The UUID of the player with dashes.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+        """
+        super().__init__(*args, **kwargs)
+
+        if not all([username, player_uuid, player_uuid_dash]):
+            raise ValueError("Invalid parameters")
+
         self.player_username = username
         self.player_uuid = player_uuid
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
+        """
+        Generate initial requests to scrape player profiles on the Strongcraft website.
+
+        Returns:
+            A generator of scrapy.Request objects for each player profile URL.
+        """
         url = f"https://www.strongcraft.org/players/{self.player_username}/"
-        yield scrapy.Request(url, callback=self.parse, meta={'dont_redirect': True})
+        yield scrapy.Request(url, callback=self.parse, meta={"dont_redirect": True})
 
     def parse(self, response):
-        soup = BeautifulSoup(response.text, 'lxml')
+        """
+        Parses the response from a website and extracts ban details if the player is banned.
 
-        if soup.find(text='Here you can look for the profile of any player on our network.'):
+        Args:
+            response (scrapy.Response): The response object containing the HTML content of the website.
+
+        Returns:
+            None: If the player profile is not found or the player is not banned.
+            BanItem: If the player is banned, the method yields a BanItem object containing the ban details.
+        """
+        soup = BeautifulSoup(response.text, "lxml")
+
+        if soup.find(
+            text="Here you can look for the profile of any player on our network."
+        ):
             return
 
-        ban_status_elements = soup.find('div', class_='user-data').find_all('div')
+        ban_status_elements = soup.find("div", class_="user-data").find_all("div")
         if len(ban_status_elements) == BAN_STATUS_LENGTH_NOT_BANNED:
             return
-        else:
-            if len(ban_status_elements) == BAN_STATUS_LENGTH_BANNED:
-                if 'banned' not in ban_status_elements[2].text.lower().strip():
-                    return
-                else:
-                    self.parse_ban_details(soup, response)
+        elif len(ban_status_elements) == BAN_STATUS_LENGTH_BANNED:
+            if "banned" in ban_status_elements[2].text.lower().strip():
+                self.parse_ban_details(soup, response)
 
     def parse_ban_details(self, soup, response):
-        """Parses the ban details from the soup object and yields a BanItem."""
-        table = soup.find_all('div', class_='container youplay-content')[0]
+        """
+        Parses the ban details from the soup object and yields a BanItem.
+
+        Args:
+            soup (BeautifulSoup): A BeautifulSoup object representing the HTML content of a website.
+            response (scrapy.Response): A scrapy.Response object containing the response from the website.
+
+        Yields:
+            BanItem: A BanItem object containing the ban details.
+        """
+        table = soup.find("div", class_="container youplay-content")
         if table is not None:
-            row = table.find_all('p')[1:][1] # Skip the header row
+            rows = table.find_all("p")[1:]  # Skip the header row
 
-            website_ban_date = row.text.split("(")[0].replace("The player is banned since ", "")
+            for row in rows:
+                ban_date, ban_reason = (
+                    row.text.split("(")[0].replace("The player is banned since ", ""),
+                    row.text.split("(")[1].split(")")[0],
+                )
 
-            ban_reason = row.text.split("(")[1].split(")")[0]
-            yield BanItem({
-                'source': tldextract.extract(response.url).domain,
-                'url': response.url,
-                'reason': translate(ban_reason) if get_language(ban_reason) != 'en' else ban_reason,
-                'date': int(dateparser.parse(website_ban_date).timestamp()),
-                'expires':"Permanent" if row.text.split(",")[1].strip() == "ban is permanent." else row.text.split(",")[1].strip()
-            })
+                yield BanItem(
+                    {
+                        "source": tldextract.extract(response.url).domain,
+                        "url": response.url,
+                        "reason": translate(ban_reason)
+                        if get_language(ban_reason) != "en"
+                        else ban_reason,
+                        "date": int(dateparser.parse(ban_date).timestamp()),
+                        "expires": "Permanent"
+                        if row.text.split(",")[1].strip() == "ban is permanent."
+                        else row.text.split(",")[1].strip(),
+                    }
+                )

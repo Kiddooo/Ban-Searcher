@@ -1,16 +1,17 @@
-from pathlib import Path
-from flask import Flask
 import json
-import os
-import subprocess #nosec
+import subprocess  # nosec
 import sys
-import time
 import webbrowser
+from pathlib import Path
+
+from flask import Flask
 
 app = Flask(__name__)
 
+
 class ReportGenerationError(Exception):
     pass
+
 
 class PlayerReport:
     def __init__(self, player_username, player_uuid, bans):
@@ -26,7 +27,9 @@ class PlayerReport:
             self._write_report_to_file(ban_report)
             self._serve_report_and_open_browser()
         except Exception as e:
-            raise ReportGenerationError(f"An error occurred while generating the report: {e}")
+            raise ReportGenerationError(
+                f"An error occurred while generating the report: {e}"
+            )
 
     def _construct_report_dict(self):
         return {
@@ -35,7 +38,7 @@ class PlayerReport:
             "bans": self.bans,
             "totalbans": len(self.bans),
             "skinurl": "",
-            "pastskins": ["", "", ""]
+            "pastskins": ["", "", ""],
         }
 
     def _write_report_to_file(self, report_data):
@@ -45,21 +48,34 @@ class PlayerReport:
 
     def _serve_report_and_open_browser(self):
         frontend_dir = self.frontend_dir.resolve()
-        server_cmd = [sys.executable, "-m", "http.server", "--bind", "127.0.0.1", "8000"]
-        with subprocess.Popen(server_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=frontend_dir) as p: #nosec
+        server_cmd = [
+            sys.executable,
+            "-m",
+            "http.server",
+            "--bind",
+            "127.0.0.1",
+            "8000",
+        ]
+        with subprocess.Popen(
+            server_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=frontend_dir
+        ) as p:  # nosec
             try:
-                webbrowser.open("http://127.0.0.1:8000/index.html", new=2, autoraise=True)
+                webbrowser.open(
+                    "http://127.0.0.1:8000/index.html", new=2, autoraise=True
+                )
                 p.wait()  # Wait for the process to terminate
             finally:
                 p.terminate()  # Make sure the server is terminated
 
     def _to_json(self, obj):
-        return obj.to_json() if hasattr(obj, 'to_json') else None
+        return obj.to_json() if hasattr(obj, "to_json") else None
 
-@app.route('/')
+
+@app.route("/")
 def serve_report_and_open_browser():
     webbrowser.open("http://127.0.0.1:5000/index.html", new=2, autoraise=True)
-    return 'Server is running'
+    return "Server is running"
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run()
