@@ -3,14 +3,14 @@ import scrapy
 
 class BanItem(scrapy.Item):
     """
-    BanItem represents a ban record scraped from a website.
+    A class representing a banned item in a web scraping project.
 
-    Fields:
-        source: The source website of the ban record.
-        url: The URL of the ban record.
-        reason: The reason for the ban.
-        date: The date when the ban was issued.
-        expires: The date when the ban expires.
+    Attributes:
+        source (str): The source of the ban.
+        url (str): The URL of the banned entity.
+        reason (str): The reason for the ban.
+        date (str): The date when the ban was issued.
+        expires (str): The date when the ban expires.
     """
 
     source = scrapy.Field()
@@ -21,10 +21,10 @@ class BanItem(scrapy.Item):
 
     def to_json(self) -> dict:
         """
-        Convert the BanItem to a JSON serializable dictionary.
+        Convert the BanItem object to a JSON-compatible dictionary.
 
         Returns:
-            A dictionary with the same fields as the BanItem.
+            dict: A dictionary representation of the BanItem object.
         """
         return {
             "source": self["source"],

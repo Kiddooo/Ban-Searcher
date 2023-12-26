@@ -1,13 +1,15 @@
 class BanPipeline:
     bans = []
-    """
-    A Scrapy pipeline for processing items scraped by spiders.
-    Each item is appended to the instance's bans list.
-    """
 
     def __init__(self):
         """
-        Initialize the pipeline with empty bans list and player details.
+        Initializes a new instance of the BanPipeline class.
+
+        Inputs:
+        - None
+
+        Outputs:
+        - None
         """
         self.username = None
         self.player_uuid = None
@@ -16,14 +18,38 @@ class BanPipeline:
     @classmethod
     def from_crawler(cls, crawler):
         """
-        Class method to create a pipeline instance from a crawler.
+        Create an instance of the BanPipeline class.
+
+        Args:
+            crawler (object): The crawler object.
+
+        Returns:
+            BanPipeline: An instance of the BanPipeline class.
         """
         return cls()
 
     def open_spider(self, spider):
         """
-        Called when the spider is opened.
-        Retrieves the player details from the spider.
+        Initializes the instance variables `username`, `player_uuid`, and `player_uuid_dash` with values from the `spider` object.
+
+        Args:
+            spider (object): The spider object that contains player information.
+
+        Example Usage:
+            # Create an instance of the BanPipeline class
+            pipeline = BanPipeline()
+
+            # Create a spider object with player information
+            spider = Spider(player_username='john_doe', player_uuid='1234567890', player_uuid_dash='1234-5678-90')
+
+            # Call the open_spider method to initialize the instance variables
+            pipeline.open_spider(spider)
+
+            # Access the initialized instance variables
+            print(pipeline.username)  # Output: john_doe
+            print(pipeline.player_uuid)  # Output: 1234567890
+            print(pipeline.player_uuid_dash)  # Output: 1234-5678-90
+
         """
         self.username = spider.player_username
         self.player_uuid = spider.player_uuid
@@ -31,8 +57,14 @@ class BanPipeline:
 
     def process_item(self, item, spider):
         """
-        Process each item scraped by the spider.
-        The item is appended to the bans list and then returned.
+        Process the input item and append it to the bans list.
+
+        Args:
+            item (dict): The item to be processed by the pipeline.
+            spider (object): The spider object associated with the item.
+
+        Returns:
+            dict: The same item that was passed as input.
         """
         self.bans.append(item)
         return item
