@@ -156,8 +156,8 @@ class Player(BaseModel):
             try:
                 uuid_with_dashes = str(UUID(values["uuid"]))
                 return uuid_with_dashes
-            except ValueError:
-                raise ValueError("Invalid UUID format")
+            except ValueError as e:
+                raise ValueError("Invalid UUID format") from e
         return value
 
     @validator("username", pre=True, always=True)

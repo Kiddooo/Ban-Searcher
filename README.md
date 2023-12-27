@@ -19,12 +19,10 @@
 - [📍 Overview](#-overview)
 - [📦 Features](#-features)
 - [📂 repository Structure](#-repository-structure)
-- [⚙️ Modules](#modules)
+- [⚙️ Modules](#⚙️-Modules)
 - [🚀 Getting Started](#-getting-started)
   - [🔧 Installation](#-installation)
-  - [🤖 Running ](#-running-)
-  - [🧪 Tests](#-tests)
-- [🛣 Roadmap](#-roadmap)
+  - [🤖 Running ](#🤖-running)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
 - [👏 Acknowledgments](#-acknowledgments)
@@ -37,7 +35,7 @@ Ban-Searcher is a Python-based project designed to search for bans across variou
 
 The main entry point of the project is `project.py`, which coordinates the execution of the different scripts and manages the overall workflow.
 
-## The project is designed with extensibility in mind, allowing for the addition of new website scripts as needed. This makes Ban-Searcher a versatile tool for anyone looking to gather and analyze ban data across multiple platforms.
+## The project is designed with extensibility in mind, allowing for the addition of new website scripts as needed. This makes Ban-Searcher a versatile tool for anyone looking to gather and analyze ban data across multiple platforms
 
 ## 📦 Features
 
@@ -103,14 +101,14 @@ Ban-Searcher offers the following key features:
 
 | File                     | Summary                                                                                                                                  |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| [start.sh](#)            | This script starts the application.                                                                                                      |
-| [project.py](#)          | This is the main entry point of the application. It coordinates the execution of the different scripts and manages the overall workflow. |
-| [.env_copy](#)           | This file contains environment variables needed for the project.                                                                         |
-| [requirements.txt](#)    | This file lists the Python dependencies that need to be installed for the project to run.                                                |
-| [player_report.py](#)    | This script generates reports for players.                                                                                               |
-| [player_converter.py](#) | This script converts player data into a desired format.                                                                                  |
-| [utils.py](#)            | This module contains utility functions that are used across the project.                                                                 |
-| [start.bat](#)           | This script starts the application on Windows systems.                                                                                   |
+| [start.sh](start.sh)            | This script starts the application.                                                                                                      |
+| [project.py](project.py)          | This is the main entry point of the application. It coordinates the execution of the different scripts and manages the overall workflow. |
+| [.env_copy](.env_copy)           | This file contains environment variables needed for the project.                                                                         |
+| [requirements.txt](requirements.txt)    | This file lists the Python dependencies that need to be installed for the project to run.                                                |
+| [player_report.py](player_report.py)    | This script generates reports for players.                                                                                               |
+| [player_converter.py](player_converter.py) | This script converts player data into a desired format.                                                                                  |
+| [utils.py](utils.py)            | This module contains utility functions that are used across the project.                                                                 |
+| [start.bat](start.bat)           | This script starts the application on Windows systems.                                                                                   |
 
 </details>
 
@@ -118,10 +116,10 @@ Ban-Searcher offers the following key features:
 
 | File                | Summary                                                          |
 | ------------------- | ---------------------------------------------------------------- |
-| [pipelines.py](#)   | This script manages data pipelines in the project.               |
-| [items.py](#)       | This script defines the data items that the spiders will return. |
-| [middlewares.py](#) | This script handles requests made by the spiders.                |
-| [settings.py](#)    | This script contains settings for the Scrapy spiders.            |
+| [pipelines.py](./banlist_project/pipelines.py)   | This script manages data pipelines in the project.               |
+| [items.py](./banlist_project/items.py)       | This script defines the data items that the spiders will return. |
+| [middlewares.py](./banlist_project/middlewares.py) | This script handles requests made by the spiders.                |
+| [settings.py](./banlist_project/settings.py)    | This script contains settings for the Scrapy spiders.            |
 
 </details>
 
@@ -153,7 +151,7 @@ Ban-Searcher offers the following key features:
 | [syuu_spider.py](./banlist_project/spiders/syuu_spider.py)                               | This spider is tailored to search for bans on the Syuu website.                |
 | [uhc_ubl.py](./banlist_project/spiders/uhc_ubl.py)                                       | This spider is tailored to search for bans on the UHC UBL website.             |
 
-## </details>
+</details>
 
 ## 🚀 Getting Started
 
@@ -266,12 +264,12 @@ Once your PR is reviewed and approved, it will be merged into the main branch.
 
 ## 📄 License
 
-## This project is protected under the [GNU Affero General Public License](https://www.gnu.org/licenses/agpl-3.0.en.html). For more details, refer to the [LICENSE](https://github.com/Kiddooo/Ban-Searcher/blob/main/LICENSE.md) file.
+## This project is protected under the [GNU Affero General Public License](https://www.gnu.org/licenses/agpl-3.0.en.html). For more details, refer to the [LICENSE](https://github.com/Kiddooo/Ban-Searcher/blob/main/LICENSE.md) file
 
 ## 👏 Acknowledgments
 
 - 105hua: For their useful insight and feedback.
 
-[**Return**](#Top)
+[**Return**](#top)
 
 ---

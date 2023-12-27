@@ -50,7 +50,7 @@ def get_user_input() -> Tuple[Optional[str], Optional[str], Optional[str]]:
             err_msg = f"Failed to fetch all player attributes. Username: {player.username}, UUID: {player.uuid}"
             raise ValueError(err_msg)
     except PlayerValidationError as e:
-        raise ValueError(f"Validation error when creating a Player: {e}")
+        raise ValueError(f"Validation error when creating a Player: {e}") from e
 
 
 def clear_screen() -> None:

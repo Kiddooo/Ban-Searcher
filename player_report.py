@@ -56,7 +56,7 @@ class PlayerReport:
         except Exception as e:
             raise ReportGenerationError(
                 f"An error occurred while generating the report: {e}"
-            )
+            ) from e
 
     def _construct_report_dict(self):
         """
