@@ -1,10 +1,9 @@
-import dateparser
 import scrapy
 import tldextract
 from bs4 import BeautifulSoup
 
 from banlist_project.items import BanItem
-from utils import get_language, logger, translate
+from utils import calculate_timestamp, get_language, logger, parse_date, translate
 
 
 class SnapcraftSpider(scrapy.Spider):
@@ -88,10 +87,8 @@ class SnapcraftSpider(scrapy.Spider):
             int or str: The ban date as an integer timestamp or 'N/A' if the parsing fails.
         """
         try:
-            ban_date = int(
-                dateparser.parse(
-                    row.find("div", class_="td _date").text.strip()
-                ).timestamp()
+            ban_date = calculate_timestamp(
+                parse_date(row.find("div", class_="td _date").text.strip())
             )
         except ValueError as e:
             logger.error(f"Failed to parse ban date: {e}")
@@ -115,7 +112,7 @@ class SnapcraftSpider(scrapy.Spider):
             return "Permanent"
         else:
             try:
-                return int(dateparser.parse(ban_expires).timestamp())
+                return calculate_timestamp(parse_date(ban_expires))
             except ValueError:
                 logger.error("Failed to parse ban expiry:", ban_expires)
                 return "N/A"

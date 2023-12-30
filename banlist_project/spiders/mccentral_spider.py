@@ -1,11 +1,10 @@
 import json
-from datetime import datetime
 
 import scrapy
 import tldextract
 
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import calculate_timestamp, get_language, parse_date, translate
 
 # Constants
 BASE_URL = "https://mccentral.org/punishments/resources/api/bans.php?uuid="
@@ -71,7 +70,7 @@ class MCCentralSpider(scrapy.Spider):
                         .replace("th", "")
                         .replace("Augu", "August")
                     )
-                    date = int(datetime.strptime(date_str, "%d %B %Y").timestamp())
+                    date = calculate_timestamp(parse_date(date_str))
                     expires = "Permanent" if offence["timeleft"] == "Forever" else "N/A"
 
                     yield BanItem(

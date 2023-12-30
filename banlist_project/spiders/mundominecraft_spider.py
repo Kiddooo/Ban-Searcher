@@ -129,9 +129,9 @@ class MundoMinecraftSpider(scrapy.Spider):
         """
         source = "mundominecraft"
         ban_reason = ban["reason"]
-        translated_reason = translate(ban_reason)
-        is_english = get_language(ban_reason) == "en"
-        reason = translated_reason if not is_english else ban_reason
+        reason = (
+            translate(ban_reason) if get_language(ban_reason) != "en" else ban_reason
+        )
         date = ban["created"]
         expires = (
             "Permanent" if ban["expires"] == PERMANENT_BAN_EXPIRY else ban["expires"]

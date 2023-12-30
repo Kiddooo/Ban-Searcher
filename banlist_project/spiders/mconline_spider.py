@@ -2,7 +2,7 @@ import scrapy
 import tldextract
 
 from banlist_project.items import BanItem
-from utils import get_language, logger, translate
+from utils import get_language, translate
 
 # Constants
 URL_TEMPLATE = "https://minecraftonline.com/cgi-bin/getplayerinfo?"
@@ -53,31 +53,25 @@ class MCOnlineSpider(scrapy.Spider):
         Yields:
             BanItem: A BanItem object containing the parsed ban information.
         """
-        try:
-            # Split the response text by line and semicolon
-            ban_info = response.text.split("\n")[3:-1][0].split(";")
+        # Split the response text by line and semicolon
+        ban_info = response.text.split("\n")[3:-1][0].split(";")
 
-            # Extract the relevant information
-            source = tldextract.extract(response.url).domain
-            url = response.url
-            date = int(ban_info[1])
-            reason = (
-                translate(ban_info[2])
-                if get_language(ban_info[2]) != "en"
-                else ban_info[2]
-            )
-            expires = "N/A"
+        # Extract the relevant information
+        source = tldextract.extract(response.url).domain
+        url = response.url
+        date = int(ban_info[1])
+        reason = (
+            translate(ban_info[2]) if get_language(ban_info[2]) != "en" else ban_info[2]
+        )
+        expires = "N/A"
 
-            # Yield a new BanItem with the parsed information
-            yield BanItem(
-                {
-                    "source": source,
-                    "url": url,
-                    "date": date,
-                    "reason": reason,
-                    "expires": expires,
-                }
-            )
-        except IndexError:
-            # Log a message if an error occurs
-            logger.error(f"Error parsing response for player: {self.player_username}")
+        # Yield a new BanItem with the parsed information
+        yield BanItem(
+            {
+                "source": source,
+                "url": url,
+                "date": date,
+                "reason": reason,
+                "expires": expires,
+            }
+        )

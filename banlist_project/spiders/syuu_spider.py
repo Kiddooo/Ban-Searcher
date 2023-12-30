@@ -1,10 +1,9 @@
-import dateparser
 import scrapy
 import tldextract
 from bs4 import BeautifulSoup
 
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import calculate_timestamp, get_language, parse_date, translate
 
 # Constants for better readability
 HEADER_ROW_INDEX = 1
@@ -101,8 +100,8 @@ class SyuuSpider(scrapy.Spider):
                 if get_language(ban_reason) != "en"
                 else ban_reason
             )
-            date = int(dateparser.parse(rows[2].find_all("td")[1].text).timestamp())
-            expires = int(dateparser.parse(rows[3].find_all("td")[1].text).timestamp())
+            date = calculate_timestamp(parse_date(rows[2].find_all("td")[1].text))
+            expires = calculate_timestamp(parse_date(rows[3].find_all("td")[1].text))
 
             # Create a BanItem object with the extracted information
             ban_item = BanItem(

@@ -1,5 +1,5 @@
 import os
-import re
+import subprocess  # nosec
 from typing import Optional, Tuple
 
 from InquirerPy import prompt
@@ -38,17 +38,18 @@ def get_user_input() -> Tuple[Optional[str], Optional[str], Optional[str]]:
         raise ValueError(f"The input for {input_type} is invalid.")
 
     if input_type.lower() == "uuid":
-        input_value = re.sub(r"-", "", input_value)
+        input_value = input_value.replace("-", "")
 
     try:
         player_data = {input_type.lower(): input_value}
         player = Player(**player_data)
+        player.ensure_all_attributes()
 
-        if player.username and player.uuid:
-            return player.username, player.uuid, player.uuid_dash
-        else:
-            err_msg = f"Failed to fetch all player attributes. Username: {player.username}, UUID: {player.uuid}"
-            raise ValueError(err_msg)
+        if not (player.username and player.uuid):
+            raise ValueError(
+                f"Failed to fetch all player attributes. Username: {player.username}, UUID: {player.uuid}"
+            )
+        return player.username, player.uuid, player.uuid_dash
     except PlayerValidationError as e:
         raise ValueError(f"Validation error when creating a Player: {e}") from e
 
@@ -59,15 +60,22 @@ def clear_screen() -> None:
 
     :return: None
     """
-    # Determine the command based on the operating system
-    command = "cls" if os.name == "nt" else "clear"
-    # Execute the command to clear the screen
-    os.system(command)  # nosec
+    try:
+        # Determine the clear_screen_command based on the operating system
+        clear_screen_command = "cls" if os.name == "nt" else "clear"
+        # Execute the clear_screen_command to clear the screen
+        return_code = subprocess.run(
+            clear_screen_command, shell=True
+        ).returncode  # nosec
+        if return_code != 0:
+            raise OSError(f"Failed to clear the screen. Return code: {return_code}")
+    except Exception as e:
+        print(f"An error occurred while clearing the screen: {e}")
 
 
 def start_crawling_process(username: str, uuid: str, uuid_dash: str) -> None:
     """
-    Start the crawling process for the 'JohnyMuffinSpider'.
+    Start the crawling process.
 
     Args:
     - username: str - The username to crawl data for.
@@ -78,10 +86,14 @@ def start_crawling_process(username: str, uuid: str, uuid_dash: str) -> None:
 
     """
     process = CrawlerProcess(get_project_settings())
-    for spider in process.spider_loader.list():
-        process.crawl(
-            spider, username=username, player_uuid=uuid, player_uuid_dash=uuid_dash
-        )
+    for spider_name in process.spider_loader.list():
+        if spider_name == "LiteBansSpider":
+            process.crawl(
+                spider_name,
+                username=username,
+                player_uuid=uuid,
+                player_uuid_dash=uuid_dash,
+            )
 
     process.start()
 

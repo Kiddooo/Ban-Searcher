@@ -52,24 +52,26 @@ class CubevilleSpider(scrapy.Spider):
         This function is called by Scrapy with the response of the request made in start_requests.
         """
         # Find the first table in the parsed HTML
-        table = response.css("table").get()
-        # Filter rows using Scrapy selectors
-        rows = table.select("tr:has(td:contains('" + self.player_username + "'))")
-        # Iterate over each filtered row
+        table = response.css("table")
+        # Select all rows
+        rows = table.css("tr")
+        # Iterate over each row
         for row in rows:
             # Find all columns in the row
             columns = row.css("td")
-            # Parse the ban date and ban duration text
-            banned_at, ban_duration_text = (
-                dateparser.parse(columns[1].get().text),
-                columns[3].get().text.strip(),
-            )
-            # Calculate the ban expiration date
-            ban_expires = self.get_ban_expires(ban_duration_text, banned_at)
-            # Get the ban reason
-            ban_reason = columns[2].get().text
-            # Yield a BanItem for each ban
-            yield self.create_ban_item(response, ban_reason, banned_at, ban_expires)
+            # Check if any column contains the player's username
+            if any(self.player_username in column.get() for column in columns):
+                # Parse the ban date and ban duration text
+                banned_at, ban_duration_text = (
+                    dateparser.parse(columns[1].css("::text").get()),
+                    columns[3].css("::text").get().strip(),
+                )
+                # Calculate the ban expiration date
+                ban_expires = self.get_ban_expires(ban_duration_text, banned_at)
+                # Get the ban reason
+                ban_reason = columns[2].css("::text").get().strip()
+                # Yield a BanItem for each ban
+                yield self.create_ban_item(response, ban_reason, banned_at, ban_expires)
 
     def get_ban_expires(
         self, ban_duration_text: str, banned_at: datetime

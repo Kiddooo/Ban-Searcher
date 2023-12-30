@@ -83,9 +83,10 @@ class MCBansSpider(scrapy.Spider):
         Returns:
             list: A list of dictionaries containing ban data, where each dictionary has the keys 'reason' and 'date'.
         """
-        table = soup.find("table", class_=TABLE_CLASS)
-        data = []
+        table = soup.find_all("table", class_=TABLE_CLASS)
         if table:
+            data = []
+            table = table[1]
             rows = table.find_all("tr")[1:-1]  # Skip the header row and last row
             for row in rows:
                 columns = row.find_all("td")[:-1]

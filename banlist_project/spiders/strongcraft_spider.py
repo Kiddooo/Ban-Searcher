@@ -1,10 +1,9 @@
-import dateparser
 import scrapy
 import tldextract
 from bs4 import BeautifulSoup
 
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import calculate_timestamp, get_language, parse_date, translate
 
 BAN_STATUS_LENGTH_NOT_BANNED = 2
 BAN_STATUS_LENGTH_BANNED = 3
@@ -98,7 +97,7 @@ class StrongcraftSpider(scrapy.Spider):
                         "reason": translate(ban_reason)
                         if get_language(ban_reason) != "en"
                         else ban_reason,
-                        "date": int(dateparser.parse(ban_date).timestamp()),
+                        "date": calculate_timestamp(parse_date(ban_date)),
                         "expires": "Permanent"
                         if row.text.split(",")[1].strip() == "ban is permanent."
                         else row.text.split(",")[1].strip(),

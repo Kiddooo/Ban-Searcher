@@ -1,10 +1,8 @@
-# Import necessary libraries
 from typing import Iterator
 
 import dateparser
 import scrapy
 import tldextract
-from bs4 import BeautifulSoup
 
 from banlist_project.items import BanItem
 from utils import get_language, translate
@@ -57,16 +55,13 @@ class MajncraftSpider(scrapy.Spider):
         :type response: scrapy.Response
         :return: None
         """
-        # Parse the response text with BeautifulSoup
-        soup = BeautifulSoup(response.text, "lxml")
-
         # Find the section with the list of bans
-        ban_list_section = soup.find("section", class_="list list-ban")
+        ban_list_section = response.css("section.list.list-ban")
 
         # If the ban list section is found
         if ban_list_section:
             # Find all panels in the ban list section
-            panels = ban_list_section.find_all("div", class_="panel")
+            panels = ban_list_section.css("div.panel")
 
             # For each panel, extract the ban details using the `extract_ban_details` method
             for panel in panels:
@@ -78,22 +73,22 @@ class MajncraftSpider(scrapy.Spider):
         Extracts ban details from a panel.
 
         Args:
-            panel (BeautifulSoup object): The panel containing the ban details.
+            panel (scrapy.Selector object): The panel containing the ban details.
             response (scrapy.Response object): The response object from the website.
 
         Returns:
             BanItem object: The BanItem object containing the extracted ban details.
         """
         # Find the row in the panel
-        row = panel.find("div", class_="row")
+        row = panel.css("div.row")
         # Find all divs in the row, which contain the ban details
-        ban_details = row.find_all("div")
+        ban_details = row.css("div")
 
         # Extract the ban reason, date, and expiration from the ban details
-        ban_reason = ban_details[1].contents[3].strip()
-        ban_date = ban_details[2].get_text().strip().split()[1]
+        ban_reason = ban_details[1].css("::text").get().strip()
+        ban_date = ban_details[2].css("::text").get().strip().split()[1]
         ban_date = ban_date[:-5] + " " + ban_date[-5:]
-        expires = ban_details[3].get_text().strip().split()[1]
+        expires = ban_details[3].css("::text").get().strip().split()[1]
 
         # Return a BanItem with the extracted details
         return BanItem(

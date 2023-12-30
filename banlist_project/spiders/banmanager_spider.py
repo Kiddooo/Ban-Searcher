@@ -1,10 +1,8 @@
-# Import necessary libraries
 import unicodedata
 
 import dateparser
 import scrapy
 import tldextract
-from bs4 import BeautifulSoup
 
 from banlist_project.items import BanItem
 from utils import get_language, translate
@@ -12,7 +10,7 @@ from utils import get_language, translate
 # Define constants
 URLS = [
     "http://mc.virtualgate.org/ban/index.php?action=viewplayer&player=",
-    "https://woodymc.de/BanManager/index.php?action=viewplayer&player=",
+    # "https://woodymc.de/BanManager/index.php?action=viewplayer&player=", # CLOSED
     "https://bans.piratemc.com/index.php?action=viewplayer&player=",
 ]
 
@@ -22,7 +20,13 @@ class BanManagerSpider(scrapy.Spider):
     name = "BanManagerSpider"
 
     def __init__(
-        self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
+        self,
+        username=None,
+        player_uuid=None,
+        player_uuid_dash=None,
+        urls=None,
+        *args,
+        **kwargs,
     ):
         """
         Initialize the BanManagerSpider object.
@@ -31,6 +35,7 @@ class BanManagerSpider(scrapy.Spider):
             username (str): The username of the player.
             player_uuid (str): The UUID of the player.
             player_uuid_dash (str): The UUID of the player with dashes.
+            urls (list): A list of URLs to scrape ban information from.
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments.
         """
@@ -42,6 +47,7 @@ class BanManagerSpider(scrapy.Spider):
         self.player_username = username
         self.player_uuid = player_uuid
         self.player_uuid_dash = player_uuid_dash
+        self.urls = URLS
 
     def start_requests(self):
         """
@@ -50,7 +56,7 @@ class BanManagerSpider(scrapy.Spider):
         Yields:
             scrapy.Request: A request object for each URL with a callback function set to `parse`.
         """
-        for url in URLS:
+        for url in self.urls:
             modified_url = f"{url}{self.player_username}&server=0"
             yield scrapy.Request(url=modified_url, callback=self.parse)
 
@@ -64,38 +70,18 @@ class BanManagerSpider(scrapy.Spider):
         Yields:
             BanItem: Representing the current ban and previous bans.
         """
-        soup = BeautifulSoup(response.text, "lxml")
 
         # Parse current ban
-        current_ban = self.parse_current_ban(soup, response)
-        if current_ban:
-            yield current_ban
-
-        # Parse previous bans
-        previous_bans = self.parse_previous_bans(soup, response)
-        yield from previous_bans
-
-    def parse_current_ban(self, soup, response):
-        """
-        Extracts information about the current ban from a HTML table and returns a BanItem object.
-
-        Args:
-            soup (BeautifulSoup): A BeautifulSoup object representing the parsed HTML response.
-            response (Response): The response object containing the HTML content.
-
-        Returns:
-            BanItem: A BanItem object representing the current ban.
-        """
-        current_ban_table = soup.find("table", id="current-ban")
-        if current_ban_table is not None:
-            first_row = current_ban_table.find("tr")
-            if first_row.find("td").text != "None":
+        current_ban_table = response.css("table#current-ban")
+        if current_ban_table:
+            first_row = current_ban_table.css("tr")[0]
+            if first_row.css("td::text").get().strip() != "None":
                 current_ban = {}
-                for row in current_ban_table.find_all("tr"):
-                    columns = row.find_all("td")
+                for row in current_ban_table.css("tr"):
+                    columns = row.css("td")
                     if len(columns) == 2:
-                        key = columns[0].text.replace(":", "").lower()
-                        value = columns[1].text
+                        key = columns[0].css("td::text").get().replace(":", "").lower()
+                        value = columns[1].css("td::text").get()
                         current_ban[key] = value
 
                 current_ban = list(current_ban.items())
@@ -103,10 +89,11 @@ class BanManagerSpider(scrapy.Spider):
                 ban_start_date = dateparser.parse(ban_start_date_str)
 
                 ban_length_str = unicodedata.normalize("NFC", current_ban[0][1])
-                if (
-                    ban_length_str != "Permanent"
-                    and ban_length_str.strip() != "Dich sehen wir nicht wieder =:o)"
-                ):
+                permanent_ban_strings = [
+                    "Permanent",
+                    "Dich sehen wir nicht wieder =:o)",
+                ]
+                if ban_length_str not in permanent_ban_strings:
                     ban_length = dateparser.parse(
                         "in " + ban_length_str
                     ) - dateparser.parse("now")
@@ -115,7 +102,7 @@ class BanManagerSpider(scrapy.Spider):
                 else:
                     ban_end_timestamp = "Permanent"
 
-                return BanItem(
+                yield BanItem(
                     {
                         "source": tldextract.extract(response.url).domain,
                         "url": response.url,
@@ -125,25 +112,15 @@ class BanManagerSpider(scrapy.Spider):
                     }
                 )
 
-    def parse_previous_bans(self, soup, response):
-        """
-        Extracts information about previous bans from a HTML table and returns a list of BanItem objects.
-
-        Args:
-            soup (BeautifulSoup): A BeautifulSoup object representing the parsed HTML response.
-            response (Response): The response object containing the HTML content.
-
-        Yields:
-            BanItem: A BanItem object representing a previous ban.
-        """
-        previous_bans_table = soup.find("table", id="previous-bans")
+        # Parse previous bans
+        previous_bans_table = response.css("table#previous-bans")
         if previous_bans_table:
-            rows = previous_bans_table.find_all("tr")
-            if len(rows) > 1 and rows[1].find("td").text != "None":
+            rows = previous_bans_table.css("tr")
+            if len(rows) > 1 and rows[1].css("td::text").get().strip():
                 for row in rows[1:]:
-                    columns = row.find_all("td")
-                    if len(columns) >= 7:
-                        ban_reason = columns[1].text
+                    columns = row.css("td")
+                    try:
+                        ban_reason = columns[1].css("td::text").get()
                         yield BanItem(
                             {
                                 "source": tldextract.extract(response.url).domain,
@@ -152,10 +129,16 @@ class BanManagerSpider(scrapy.Spider):
                                 if get_language(ban_reason) != "en"
                                 else ban_reason,
                                 "date": int(
-                                    dateparser.parse(columns[3].text).timestamp()
+                                    dateparser.parse(
+                                        columns[3].css("td::text").get()
+                                    ).timestamp()
                                 ),
                                 "expires": int(
-                                    dateparser.parse(columns[6].text).timestamp()
+                                    dateparser.parse(
+                                        columns[6].css("td::text").get()
+                                    ).timestamp()
                                 ),
                             }
                         )
+                    except IndexError:
+                        pass

@@ -1,6 +1,9 @@
+import re
+from datetime import datetime
 import logging
 import os
 
+import dateparser
 import requests
 from bs4 import BeautifulSoup
 from deep_translator import GoogleTranslator, single_detection
@@ -16,6 +19,61 @@ handler = logging.StreamHandler()
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
+
+class DateParsingError(Exception):
+    pass
+
+def parse_date(date_str):
+    """
+    Parses a date string and returns the corresponding date object.
+
+    Parameters:
+        date_str (str): The date string to be parsed.
+
+    Returns:
+        datetime.datetime or str: The parsed date object or "Permanent" if the ban is permanent.
+
+    Raises:
+        DateParsingError: If there is an error parsing the date.
+
+    """
+    try:
+        if not isinstance(date_str, str):
+            raise ValueError("date_str must be a string")
+
+        date_str = re.sub(r'\bklo\b', '', date_str).split(" (")[0].strip()
+        permanent_ban_types = {"Permanent Ban", "Permanentni", "Ban Permanente"}
+
+        if date_str in permanent_ban_types:
+            ban_expires = "Permanent"
+        else:
+            ban_expires = dateparser.parse(date_str)
+
+        return ban_expires
+
+    except Exception as e:
+        logging.error(f"Error parsing date: {date_str}: {str(e)}")
+        raise DateParsingError(f"Error parsing date: {date_str}: {str(e)}") from DateParsingError
+
+def calculate_timestamp(date):
+    """
+    Calculates the timestamp from a given date.
+
+    Parameters:
+        date: The date to calculate the timestamp from.
+
+    Returns:
+        int or str: The calculated timestamp as an integer or "N/A" if the date is None.
+    """
+    if date is None:
+        return "N/A"
+    elif isinstance(date, str):
+        return date
+    elif isinstance(date, datetime):
+        return int(date.timestamp())
+    else:
+        raise TypeError('Invalid input type for `date`')
 
 
 def get_language(text: str) -> str:

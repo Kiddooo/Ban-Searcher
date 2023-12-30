@@ -1,14 +1,13 @@
 import re
 from typing import Generator, List, Union
 
-import dateparser
 import scrapy
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from twisted.internet.threads import deferToThread
 
 from banlist_project.items import BanItem
-from utils import logger
+from utils import calculate_timestamp, logger, parse_date
 
 
 class GoogleSheetsSpider(scrapy.Spider):
@@ -62,10 +61,10 @@ class GoogleSheetsSpider(scrapy.Spider):
         if re.search(r"\b\d{4}\b", date_string):
             try:
                 # Year is present, so try to parse the date string into a date object
-                parsed_date = dateparser.parse(date_string)
+                parsed_date = parse_date(date_string)
                 if parsed_date:
                     # If parsing was successful, return the timestamp
-                    return int(parsed_date.timestamp())
+                    return calculate_timestamp(parsed_date)
             except Exception as e:
                 # Log the exception for debugging purposes
                 logger.error(f"Exception occurred: {e}")

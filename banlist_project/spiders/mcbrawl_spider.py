@@ -1,10 +1,9 @@
-import dateparser
 import scrapy
 import tldextract
 from bs4 import BeautifulSoup
 
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import calculate_timestamp, get_language, parse_date, translate
 
 # Constants
 PLAYER_DOESNT_EXIST = "Player doesn't exist"
@@ -76,23 +75,18 @@ class MCBrawlSpider(scrapy.Spider):
                         columns = row.find_all("td")
                         ban_reason = columns[0].text
 
-                        try:
-                            ban_reason_lang = get_language(ban_reason)
-                        except IndexError:
-                            ban_reason_lang = "en"
-
                         yield BanItem(
                             {
                                 "source": tldextract.extract(response.url).domain,
                                 "url": response.url,
                                 "reason": translate(ban_reason)
-                                if ban_reason_lang != "en"
+                                if get_language(ban_reason) != "en"
                                 else ban_reason,
-                                "date": int(
-                                    dateparser.parse(columns[1].text).timestamp()
+                                "date": calculate_timestamp(
+                                    parse_date(columns[1].text)
                                 ),
                                 "expires": "N/A"
                                 if columns[2].text == ""
-                                else int(dateparser.parse(columns[2].text).timestamp()),
+                                else calculate_timestamp(parse_date(columns[2].text)),
                             }
                         )

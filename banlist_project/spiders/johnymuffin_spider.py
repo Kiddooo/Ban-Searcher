@@ -42,11 +42,24 @@ class JohnyMuffinSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        # Start the spider by sending a request to the ban URL
+        """
+        Initiates the spider by sending a request to a specific URL.
+
+        :return: A generator object that yields a `scrapy.Request` object.
+        """
         url = BAN_URL + self.player_uuid_dash
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
+        """
+        Parse the response received from a web page and extract information using BeautifulSoup.
+
+        Args:
+            response (scrapy.http.Response): The response object containing the HTML content of the web page.
+
+        Yields:
+            BanItem: Represents banned items in a web scraping project.
+        """
         # Parse the response using BeautifulSoup
         soup = BeautifulSoup(response.text, "lxml")
 

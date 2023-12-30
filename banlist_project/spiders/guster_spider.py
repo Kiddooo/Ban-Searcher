@@ -1,9 +1,9 @@
 import json
+import re
 from urllib.parse import urlparse
 
 import dateparser
 import scrapy
-from bs4 import BeautifulSoup
 
 from banlist_project.items import BanItem
 from utils import get_language, translate
@@ -80,6 +80,7 @@ class GusterSpider(scrapy.Spider):
 
         """
         bans_on_page = json.loads(response.text)["banlist"]
+        ban_items = []
 
         for ban in bans_on_page:
             if (
@@ -92,29 +93,29 @@ class GusterSpider(scrapy.Spider):
                     if get_language(ban["reason"]) != "en"
                     else ban["reason"]
                 )
-                date = int(
-                    dateparser.parse(
-                        BeautifulSoup(ban["date"], "lxml").text
-                    ).timestamp()
+                date_match = re.search(r"\d{4}-\d{2}-\d{2}", ban["date"])
+                date = (
+                    int(dateparser.parse(date_match.group()).timestamp())
+                    if date_match
+                    else None
                 )
+                expires_match = re.search(r"\d{4}-\d{2}-\d{2}", ban["expire"])
                 expires = (
-                    "Permanant"
-                    if "Never" in ban["expire"]
-                    else "N/A"
-                    if "Expired" in ban["expire"]
-                    else int(
-                        dateparser.parse(
-                            BeautifulSoup(ban["expire"], "lxml").text
-                        ).timestamp()
+                    int(dateparser.parse(expires_match.group()).timestamp())
+                    if expires_match
+                    else None
+                )
+
+                ban_items.append(
+                    BanItem(
+                        {
+                            "source": urlparse(response.url).hostname,
+                            "reason": reason,
+                            "url": response.url,
+                            "date": date,
+                            "expires": expires,
+                        }
                     )
                 )
 
-                yield BanItem(
-                    {
-                        "source": urlparse(response.url).hostname,
-                        "reason": reason,
-                        "url": response.url,
-                        "date": date,
-                        "expires": expires,
-                    }
-                )
+        yield ban_items

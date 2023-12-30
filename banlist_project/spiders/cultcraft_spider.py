@@ -1,18 +1,17 @@
-import scrapy
 import tldextract
 from bs4 import BeautifulSoup
+from scrapy import Request, Spider
 
 from banlist_project.items import BanItem
 from utils import get_language, translate
 
-# Constants for magic strings
-PERMANENT = "Permanent"
-PERMABAN = "Permaban"
-PERMANENT_FOREVER = "Permanent (für immer)"
 
-
-class CultcraftSpider(scrapy.Spider):
+class CultcraftSpider(Spider):
     name = "CultcraftSpider"
+
+    PERMANENT = "Permanent"
+    PERMABAN = "Permaban"
+    PERMANENT_FOREVER = "Permanent (für immer)"
 
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
@@ -37,8 +36,8 @@ class CultcraftSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        url = "https://cultcraft.de/bannliste?player=" + self.player_username
-        yield scrapy.Request(url, callback=self.parse)
+        url = f"https://cultcraft.de/bannliste?player={self.player_username}"
+        yield Request(url, callback=self.parse)
 
     def parse(self, response):
         soup = BeautifulSoup(response.text, "lxml")
@@ -49,18 +48,22 @@ class CultcraftSpider(scrapy.Spider):
             for row in table.find_all("tr")[1:]:  # Skip the header row
                 columns = row.find_all("td")[1:]
 
-                # Extract ban details
+                # Create a mapping of column names to indices
+                column_mapping = {"reason": 0, "date": 2, "expires": 3}
+
+                # Extract ban details using the column mapping
                 ban_expiration_date = (
-                    PERMANENT
-                    if columns[3].text.strip() == PERMABAN
-                    else columns[3].text
+                    self.PERMANENT
+                    if columns[column_mapping["expires"]].text.strip() == self.PERMABAN
+                    else columns[column_mapping["expires"]].text
                 )
                 ban_date = (
                     "N/A"
-                    if columns[2].text.strip() == PERMANENT_FOREVER
-                    else columns[2].text
+                    if columns[column_mapping["date"]].text.strip()
+                    == self.PERMANENT_FOREVER
+                    else columns[column_mapping["date"]].text
                 )
-                ban_reason = columns[0].text
+                ban_reason = columns[column_mapping["reason"]].text
 
                 # Yield a new BanItem
                 yield self.create_ban_item(

@@ -162,3 +162,5 @@ cython_debug/
 .cosine
 .trunk
 credentials.json
+test_players
+bedrock_uuid.txt

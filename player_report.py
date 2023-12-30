@@ -1,6 +1,7 @@
 import json
 import subprocess  # nosec
 import sys
+import time
 import webbrowser
 from pathlib import Path
 
@@ -121,7 +122,7 @@ class PlayerReport:
                 webbrowser.open(
                     "http://127.0.0.1:8000/index.html", new=2, autoraise=True
                 )
-                p.wait()  # Wait for the process to terminate
+                time.sleep(5)
             finally:
                 p.terminate()  # Make sure the server is terminated
 

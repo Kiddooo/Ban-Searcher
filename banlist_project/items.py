@@ -3,7 +3,7 @@ import scrapy
 
 class BanItem(scrapy.Item):
     """
-    A class representing a banned item in a web scraping project.
+    A class representing a ban.
 
     Attributes:
         source (str): The source of the ban.

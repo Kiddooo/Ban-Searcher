@@ -1,13 +1,15 @@
+from urllib.parse import urljoin
+
 import dateparser
-import scrapy
 import tldextract
 from bs4 import BeautifulSoup
+from scrapy import Request, Spider
 
 from banlist_project.items import BanItem
 from utils import get_language, translate
 
 
-class DemocracycraftSpider(scrapy.Spider):
+class DemocracycraftSpider(Spider):
     name = "DemocracycraftSpider"
 
     def __init__(
@@ -36,8 +38,9 @@ class DemocracycraftSpider(scrapy.Spider):
         """
         Construct the URL using the player's username and yield a scrapy.Request object with the URL as a callback to the parse method.
         """
-        url = f"https://www.democracycraft.net/logs/user/{self.player_username}"
-        yield scrapy.Request(url, callback=self.parse, meta={"dont_redirect": True})
+        base_url = "https://www.democracycraft.net/logs/user/"
+        url = urljoin(base_url, self.player_username)
+        yield Request(url, callback=self.parse, meta={"dont_redirect": True})
 
     def parse(self, response):
         """
@@ -50,31 +53,42 @@ class DemocracycraftSpider(scrapy.Spider):
             BanItem: A BanItem object for each ban record found in the HTML response.
         """
         soup = BeautifulSoup(response.text, "lxml")
-        table = soup.find("table", class_="results")
+        table = self._parse_table(soup)
 
         if table is not None:
-            for row in table.find_all("tr")[1:]:
-                columns = row.find_all("td")[1:]
+            for row in self._parse_table_rows(table):
+                ban_item = self._create_ban_item(response, row)
+                yield ban_item
 
-                expires_date = columns[3].text.strip()
-                ban_date = columns[2].text.strip()
-                ban_reason = columns[1].text.strip()
+    def _parse_table(self, soup):
+        return soup.find("table", class_="results")
 
-                if expires_date == "Never":
-                    expires_date = "Permanent"
-                else:
-                    expires_date = int(dateparser.parse(expires_date).timestamp())
+    def _parse_table_rows(self, table):
+        return table.find_all("tr")[1:]
 
-                ban_date = int(dateparser.parse(ban_date).timestamp())
+    def _create_ban_item(self, response, row):
+        columns = row.find_all("td")[1:]
 
-                yield BanItem(
-                    {
-                        "source": tldextract.extract(response.url).domain,
-                        "url": response.url,
-                        "reason": translate(ban_reason)
-                        if get_language(ban_reason) != "en"
-                        else ban_reason,
-                        "date": ban_date,
-                        "expires": expires_date,
-                    }
-                )
+        expires_date = columns[3].text.strip()
+        ban_date = columns[2].text.strip()
+        ban_reason = columns[1].text.strip()
+
+        if expires_date == "Never":
+            expires_date = "Permanent"
+        else:
+            expires_date = int(dateparser.parse(expires_date).timestamp())
+
+        ban_date = int(dateparser.parse(ban_date).timestamp())
+
+        if get_language(ban_reason) != "en":
+            ban_reason = translate(ban_reason)
+
+        return BanItem(
+            {
+                "source": tldextract.extract(response.url).domain,
+                "url": response.url,
+                "reason": ban_reason,
+                "date": ban_date,
+                "expires": expires_date,
+            }
+        )

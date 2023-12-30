@@ -1,10 +1,10 @@
-import dateparser
 import scrapy
+import scrapy.http
 import tldextract
 from bs4 import BeautifulSoup
 
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import calculate_timestamp, get_language, parse_date, translate
 
 BASE_URL = "https://mcbouncer.com/u/{}/bansFor"
 
@@ -71,7 +71,7 @@ class MCBouncerSpider(scrapy.Spider):
             else:
                 break
 
-    def parse_table(self, parsed_html: BeautifulSoup, response: scrapy.Response):
+    def parse_table(self, parsed_html: BeautifulSoup, response: scrapy.http.Response):
         """
         Extracts data from a table in the HTML response.
 
@@ -95,10 +95,8 @@ class MCBouncerSpider(scrapy.Spider):
                         "reason": translate(ban_reason)
                         if get_language(ban_reason) != "en"
                         else ban_reason,
-                        "date": int(
-                            dateparser.parse(
-                                columns[2].text.replace("\xa0", " ")
-                            ).timestamp()
+                        "date": calculate_timestamp(
+                            parse_date(columns[2].text.replace("\xa0", " "))
                         ),
                         "expires": "N/A",
                     }

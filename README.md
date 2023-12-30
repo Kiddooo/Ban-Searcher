@@ -99,27 +99,27 @@ Ban-Searcher offers the following key features:
 
 <details closed><summary>Root</summary>
 
-| File                     | Summary                                                                                                                                  |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| [start.sh](start.sh)            | This script starts the application.                                                                                                      |
-| [project.py](project.py)          | This is the main entry point of the application. It coordinates the execution of the different scripts and manages the overall workflow. |
-| [.env_copy](.env_copy)           | This file contains environment variables needed for the project.                                                                         |
-| [requirements.txt](requirements.txt)    | This file lists the Python dependencies that need to be installed for the project to run.                                                |
-| [player_report.py](player_report.py)    | This script generates reports for players.                                                                                               |
+| File                                       | Summary                                                                                                                                  |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| [start.sh](start.sh)                       | This script starts the application.                                                                                                      |
+| [project.py](project.py)                   | This is the main entry point of the application. It coordinates the execution of the different scripts and manages the overall workflow. |
+| [.env_copy](.env_copy)                     | This file contains environment variables needed for the project.                                                                         |
+| [requirements.txt](requirements.txt)       | This file lists the Python dependencies that need to be installed for the project to run.                                                |
+| [player_report.py](player_report.py)       | This script generates reports for players.                                                                                               |
 | [player_converter.py](player_converter.py) | This script converts player data into a desired format.                                                                                  |
-| [utils.py](utils.py)            | This module contains utility functions that are used across the project.                                                                 |
-| [start.bat](start.bat)           | This script starts the application on Windows systems.                                                                                   |
+| [utils.py](utils.py)                       | This module contains utility functions that are used across the project.                                                                 |
+| [start.bat](start.bat)                     | This script starts the application on Windows systems.                                                                                   |
 
 </details>
 
 <details closed><summary>Banlist_project</summary>
 
-| File                | Summary                                                          |
-| ------------------- | ---------------------------------------------------------------- |
-| [pipelines.py](./banlist_project/pipelines.py)   | This script manages data pipelines in the project.               |
-| [items.py](./banlist_project/items.py)       | This script defines the data items that the spiders will return. |
+| File                                               | Summary                                                          |
+| -------------------------------------------------- | ---------------------------------------------------------------- |
+| [pipelines.py](./banlist_project/pipelines.py)     | This script manages data pipelines in the project.               |
+| [items.py](./banlist_project/items.py)             | This script defines the data items that the spiders will return. |
 | [middlewares.py](./banlist_project/middlewares.py) | This script handles requests made by the spiders.                |
-| [settings.py](./banlist_project/settings.py)    | This script contains settings for the Scrapy spiders.            |
+| [settings.py](./banlist_project/settings.py)       | This script contains settings for the Scrapy spiders.            |
 
 </details>
 
