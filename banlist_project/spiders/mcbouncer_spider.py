@@ -2,9 +2,9 @@ import scrapy
 import scrapy.http
 import tldextract
 from bs4 import BeautifulSoup
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import calculate_timestamp, get_language, parse_date, translate
+from utils import calculate_timestamp, get_language, logger, parse_date, translate
 
 BASE_URL = "https://mcbouncer.com/u/{}/bansFor"
 
@@ -42,6 +42,9 @@ class MCBouncerSpider(scrapy.Spider):
             A generator that yields scrapy.Request objects with the URL and callback function.
         """
         url = BASE_URL.format(self.player_uuid)
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
@@ -55,9 +58,8 @@ class MCBouncerSpider(scrapy.Spider):
             scrapy.Request: A new request to the next page.
         """
         parsed_html = BeautifulSoup(response.text, "lxml")
-
         while True:
-            self.parse_table(parsed_html, response)
+            yield from self.parse_table(parsed_html, response)
 
             next_button = parsed_html.find("a", string="»")
             if next_button is not None:
@@ -82,22 +84,21 @@ class MCBouncerSpider(scrapy.Spider):
         Yields:
             BanItem: A BanItem object with the extracted data from each row in the table.
         """
-        table = parsed_html.find("table")
-        if table is not None:
-            for row in table.find_all("tr")[1:]:  # Skip the header row
-                columns = row.find_all("td")
+        # Extract the ban reason
+        ban_reason = response.css("table.table tbody tr td:nth-child(2) a::text").get()
 
-                ban_reason = columns[1].text
-                yield BanItem(
-                    {
-                        "source": tldextract.extract(response.url).domain,
-                        "url": response.url,
-                        "reason": translate(ban_reason)
-                        if get_language(ban_reason) != "en"
-                        else ban_reason,
-                        "date": calculate_timestamp(
-                            parse_date(columns[2].text.replace("\xa0", " "))
-                        ),
-                        "expires": "N/A",
-                    }
-                )
+        # Extract the ban date
+        ban_date = response.css("table.table tbody tr td:nth-child(3)::text").get()
+        yield BanItem(
+            {
+                "source": tldextract.extract(response.url).domain,
+                "url": response.url,
+                "reason": translate(ban_reason)
+                if get_language(ban_reason) != "en"
+                else ban_reason,
+                "date": calculate_timestamp(
+                    parse_date(ban_date.replace("\xa0", " "), settings={})
+                ),
+                "expires": "N/A",
+            }
+        )

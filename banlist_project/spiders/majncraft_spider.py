@@ -3,9 +3,9 @@ from typing import Iterator
 import dateparser
 import scrapy
 import tldextract
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import get_language, logger, translate
 
 # Define constants for static values
 PERMANENT = "Permanent"
@@ -45,6 +45,9 @@ class MajncraftSpider(scrapy.Spider):
         Construct the URL and yield a Scrapy request to that URL with the `parse` method as the callback.
         """
         url = f"https://server.majncraft.cz/player/{self.player_username}"
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
@@ -57,7 +60,6 @@ class MajncraftSpider(scrapy.Spider):
         """
         # Find the section with the list of bans
         ban_list_section = response.css("section.list.list-ban")
-
         # If the ban list section is found
         if ban_list_section:
             # Find all panels in the ban list section
@@ -66,32 +68,21 @@ class MajncraftSpider(scrapy.Spider):
             # For each panel, extract the ban details using the `extract_ban_details` method
             for panel in panels:
                 ban_item = self.extract_ban_details(panel, response)
-                yield ban_item
+                yield from ban_item
 
     def extract_ban_details(self, panel, response):
-        """
-        Extracts ban details from a panel.
+        # Extract the ban reason
+        ban_reason = panel.xpath(".//div[contains(@class, 'col-sm-7')]/text()[last()]").get().strip()
 
-        Args:
-            panel (scrapy.Selector object): The panel containing the ban details.
-            response (scrapy.Response object): The response object from the website.
+        # Extract the ban date
+        ban_date = panel.xpath(".//div[contains(@class, 'col-sm-1') and contains(@class, 'text-center')][1]/text()").getall()
+        ban_date = ' '.join([x.strip() for x in ban_date if x.strip()])
 
-        Returns:
-            BanItem object: The BanItem object containing the extracted ban details.
-        """
-        # Find the row in the panel
-        row = panel.css("div.row")
-        # Find all divs in the row, which contain the ban details
-        ban_details = row.css("div")
-
-        # Extract the ban reason, date, and expiration from the ban details
-        ban_reason = ban_details[1].css("::text").get().strip()
-        ban_date = ban_details[2].css("::text").get().strip().split()[1]
-        ban_date = ban_date[:-5] + " " + ban_date[-5:]
-        expires = ban_details[3].css("::text").get().strip().split()[1]
+        # Extract the ban expiration
+        expires = panel.xpath(".//div[contains(@class, 'col-sm-1') and contains(@class, 'text-center')][2]/text()[last()]").get().strip()
 
         # Return a BanItem with the extracted details
-        return BanItem(
+        yield BanItem(
             {
                 "source": tldextract.extract(response.url).domain,
                 "url": response.url,

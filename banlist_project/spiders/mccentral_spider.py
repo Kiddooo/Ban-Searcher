@@ -2,9 +2,9 @@ import json
 
 import scrapy
 import tldextract
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import calculate_timestamp, get_language, parse_date, translate
+from utils import calculate_timestamp, get_language, logger, parse_date, translate
 
 # Constants
 BASE_URL = "https://mccentral.org/punishments/resources/api/bans.php?uuid="
@@ -40,6 +40,9 @@ class MCCentralSpider(scrapy.Spider):
         Constructs the URL and sends a request to the specified URL using the Scrapy framework.
         """
         url = f"{BASE_URL}{self.player_uuid}"
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
@@ -70,7 +73,7 @@ class MCCentralSpider(scrapy.Spider):
                         .replace("th", "")
                         .replace("Augu", "August")
                     )
-                    date = calculate_timestamp(parse_date(date_str))
+                    date = calculate_timestamp(parse_date(date_str, settings={}))
                     expires = "Permanent" if offence["timeleft"] == "Forever" else "N/A"
 
                     yield BanItem(

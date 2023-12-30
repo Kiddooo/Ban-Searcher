@@ -1,9 +1,9 @@
 import scrapy
 import tldextract
 from bs4 import BeautifulSoup
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import calculate_timestamp, get_language, parse_date, translate
+from utils import calculate_timestamp, get_language, logger, parse_date, translate
 
 # Constants
 PLAYER_DOESNT_EXIST = "Player doesn't exist"
@@ -44,6 +44,9 @@ class MCBrawlSpider(scrapy.Spider):
         and yield a scrapy.Request object with the constructed URL and a callback function parse.
         """
         url = BASE_URL + self.player_username
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
@@ -83,10 +86,10 @@ class MCBrawlSpider(scrapy.Spider):
                                 if get_language(ban_reason) != "en"
                                 else ban_reason,
                                 "date": calculate_timestamp(
-                                    parse_date(columns[1].text)
+                                    parse_date(columns[1].text, settings={}),
                                 ),
                                 "expires": "N/A"
                                 if columns[2].text == ""
-                                else calculate_timestamp(parse_date(columns[2].text)),
+                                else calculate_timestamp(parse_date(columns[2].text, settings={})),
                             }
                         )

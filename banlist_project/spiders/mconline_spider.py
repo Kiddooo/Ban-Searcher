@@ -1,8 +1,8 @@
 import scrapy
 import tldextract
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import get_language, logger, translate
 
 # Constants
 URL_TEMPLATE = "https://minecraftonline.com/cgi-bin/getplayerinfo?"
@@ -41,6 +41,9 @@ class MCOnlineSpider(scrapy.Spider):
             Request: A Scrapy Request object with the URL and callback function.
         """
         url = URL_TEMPLATE + self.player_username
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):

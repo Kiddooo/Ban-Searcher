@@ -1,9 +1,9 @@
 import tldextract
 from bs4 import BeautifulSoup
 from scrapy import Request, Spider
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import get_language, logger, translate
 
 
 class CultcraftSpider(Spider):
@@ -37,6 +37,9 @@ class CultcraftSpider(Spider):
 
     def start_requests(self):
         url = f"https://cultcraft.de/bannliste?player={self.player_username}"
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield Request(url, callback=self.parse)
 
     def parse(self, response):

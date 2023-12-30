@@ -2,6 +2,7 @@ import re
 from typing import Generator, List, Union
 
 import scrapy
+from colorama import Fore, Style
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from twisted.internet.threads import deferToThread
@@ -11,7 +12,7 @@ from utils import calculate_timestamp, logger, parse_date
 
 
 class GoogleSheetsSpider(scrapy.Spider):
-    name = "google_sheets_spider"
+    name = "GoogleSheetsSpider"
 
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
@@ -47,7 +48,7 @@ class GoogleSheetsSpider(scrapy.Spider):
         # Initiate the processing by deferring to a thread
         return deferToThread(self.read_google_sheets)
 
-    def parse_date(self, date_string: str) -> Union[int, str]:
+    def _parse_date(self, date_string: str) -> Union[int, str]:
         """
         Parse a date string and return the corresponding timestamp.
 
@@ -59,15 +60,11 @@ class GoogleSheetsSpider(scrapy.Spider):
         """
         # Check if the date string contains a year
         if re.search(r"\b\d{4}\b", date_string):
-            try:
-                # Year is present, so try to parse the date string into a date object
-                parsed_date = parse_date(date_string)
-                if parsed_date:
-                    # If parsing was successful, return the timestamp
-                    return calculate_timestamp(parsed_date)
-            except Exception as e:
-                # Log the exception for debugging purposes
-                logger.error(f"Exception occurred: {e}")
+            # Year is present, so try to parse the date string into a date object
+            parsed_date = parse_date(date_string, settings={})
+            if parsed_date:
+                # If parsing was successful, return the timestamp
+                return calculate_timestamp(parsed_date)
         # If year is not present or parsing failed, return "N/A"
         return "N/A"
 
@@ -86,16 +83,19 @@ class GoogleSheetsSpider(scrapy.Spider):
         )
         service = build("sheets", "v4", credentials=creds)
 
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {SPREADSHEET_ID}{Style.RESET_ALL}"
+        )
         def create_ban_item(row: List[str], source: str, url: str) -> BanItem:
             return BanItem(
                 {
                     "source": source,
                     "url": url,
                     "reason": row[2],
-                    "date": self.parse_date(row[3]),
+                    "date": self._parse_date(row[3]),
                     "expires": "Permanent"
                     if row[4] == "Permanent"
-                    else self.parse_date(row[5]),
+                    else self._parse_date(row[5]),
                 }
             )
 

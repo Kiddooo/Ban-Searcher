@@ -1,7 +1,7 @@
 import scrapy
 import tldextract
 from bs4 import BeautifulSoup
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
 from utils import calculate_timestamp, get_language, logger, parse_date, translate
 
@@ -44,6 +44,9 @@ class SnapcraftSpider(scrapy.Spider):
             f"https://www.mcfoxcraft.com/bans/search/{self.player_username}/?filter=bans",
         ]
         for url in urls:
+            logger.info(
+                f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+            )
             yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
@@ -86,13 +89,9 @@ class SnapcraftSpider(scrapy.Spider):
         Returns:
             int or str: The ban date as an integer timestamp or 'N/A' if the parsing fails.
         """
-        try:
-            ban_date = calculate_timestamp(
-                parse_date(row.find("div", class_="td _date").text.strip())
-            )
-        except ValueError as e:
-            logger.error(f"Failed to parse ban date: {e}")
-            ban_date = "N/A"
+        ban_date = calculate_timestamp(
+            parse_date(row.find("div", class_="td _date").text.strip(), settings={})
+        )
         return ban_date
 
     def get_ban_expiry(self, row):
@@ -111,8 +110,4 @@ class SnapcraftSpider(scrapy.Spider):
         elif ban_expires == "Permanent Ban":
             return "Permanent"
         else:
-            try:
-                return calculate_timestamp(parse_date(ban_expires))
-            except ValueError:
-                logger.error("Failed to parse ban expiry:", ban_expires)
-                return "N/A"
+            return calculate_timestamp(parse_date(ban_expires, settings={}))

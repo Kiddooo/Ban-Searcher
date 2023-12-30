@@ -1,12 +1,11 @@
 import json
 import re
-from urllib.parse import urlparse
 
-import dateparser
 import scrapy
-
+import tldextract
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import get_language, logger, translate, calculate_timestamp, parse_date
 
 # Constants
 BASE_URL = "https://bans.guster.ro/api.php?type=player&player={}&page={}&perpage=25"
@@ -14,6 +13,10 @@ BASE_URL = "https://bans.guster.ro/api.php?type=player&player={}&page={}&perpage
 
 class GusterSpider(scrapy.Spider):
     name = "GusterSpider"
+
+    custom_settings = {
+        'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter',
+    }
 
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
@@ -45,6 +48,9 @@ class GusterSpider(scrapy.Spider):
             A scrapy.Request object to initiate the scraping process.
         """
         url = BASE_URL.format(self.player_username, 1)
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
@@ -80,12 +86,11 @@ class GusterSpider(scrapy.Spider):
 
         """
         bans_on_page = json.loads(response.text)["banlist"]
-        ban_items = []
 
         for ban in bans_on_page:
             if (
                 isinstance(ban, dict)
-                and ban.get("type") == "Ban"
+                and ban.get("type") == '<td class="ban">Ban</td>'
                 and all(key in ban for key in ["reason", "date", "expire"])
             ):
                 reason = (
@@ -93,29 +98,21 @@ class GusterSpider(scrapy.Spider):
                     if get_language(ban["reason"]) != "en"
                     else ban["reason"]
                 )
-                date_match = re.search(r"\d{4}-\d{2}-\d{2}", ban["date"])
-                date = (
-                    int(dateparser.parse(date_match.group()).timestamp())
-                    if date_match
-                    else None
-                )
-                expires_match = re.search(r"\d{4}-\d{2}-\d{2}", ban["expire"])
+                date = calculate_timestamp(parse_date(ban['date'], settings={}))
+
+                expires_match = re.search(r"\d{2}:\d{2}:\d{2} \d{2}.\d{2}.\d{4}", ban["expire"])
                 expires = (
-                    int(dateparser.parse(expires_match.group()).timestamp())
+                    calculate_timestamp(parse_date(expires_match.group(), settings={}))
                     if expires_match
-                    else None
+                    else "N/A"
                 )
 
-                ban_items.append(
-                    BanItem(
+                yield BanItem(
                         {
-                            "source": urlparse(response.url).hostname,
+                            "source": tldextract.extract(response.url).domain,
                             "reason": reason,
                             "url": response.url,
                             "date": date,
                             "expires": expires,
                         }
                     )
-                )
-
-        yield ban_items

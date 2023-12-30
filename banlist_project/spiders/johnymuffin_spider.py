@@ -2,9 +2,9 @@ import dateparser
 import scrapy
 import tldextract
 from bs4 import BeautifulSoup, Comment
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import get_language, logger, translate
 
 # Constants for various strings used in the code
 DATE_FORMAT = "%b %d, %Y %I:%M:%S %p"
@@ -48,6 +48,9 @@ class JohnyMuffinSpider(scrapy.Spider):
         :return: A generator object that yields a `scrapy.Request` object.
         """
         url = BAN_URL + self.player_uuid_dash
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):

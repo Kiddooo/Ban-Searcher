@@ -2,6 +2,7 @@ import os
 import subprocess  # nosec
 from typing import Optional, Tuple
 
+from colorama import Fore, Style
 from InquirerPy import prompt
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
@@ -9,7 +10,7 @@ from scrapy.utils.project import get_project_settings
 from banlist_project.pipelines import BanPipeline
 from player_converter import Player, PlayerValidationError
 from player_report import PlayerReport
-from utils import logging
+from utils import logger
 
 
 def get_user_input() -> Tuple[Optional[str], Optional[str], Optional[str]]:
@@ -87,25 +88,24 @@ def start_crawling_process(username: str, uuid: str, uuid_dash: str) -> None:
     """
     process = CrawlerProcess(get_project_settings())
     for spider_name in process.spider_loader.list():
-        if spider_name == "LiteBansSpider":
-            process.crawl(
-                spider_name,
-                username=username,
-                player_uuid=uuid,
-                player_uuid_dash=uuid_dash,
-            )
+        process.crawl(
+            spider_name,
+            username=username,
+            player_uuid=uuid,
+            player_uuid_dash=uuid_dash,
+        )
 
     process.start()
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-
     clear_screen()
 
     player_username, player_uuid, player_uuid_dash = get_user_input()
 
     start_crawling_process(player_username, player_uuid, player_uuid_dash)
 
-    player_report = PlayerReport(player_username, player_uuid_dash, BanPipeline.bans)
+    logger.info(f"{Fore.GREEN} Finished crawling! Found {len(BanPipeline.bans)} bans. Opening Report...{Style.RESET_ALL}")
+
+    player_report = PlayerReport(player_username, player_uuid_dash, sorted(BanPipeline.bans, key=lambda x: x['source']))
     player_report.generate_report()

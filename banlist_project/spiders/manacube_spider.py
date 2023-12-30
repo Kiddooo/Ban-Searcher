@@ -2,10 +2,9 @@ import re
 
 import scrapy
 import tldextract
-from scrapy.selector import Selector
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import calculate_timestamp, get_language, parse_date, translate
+from utils import calculate_timestamp, get_language, logger, parse_date, translate
 
 # Constants for repeated string values
 AT = "at"
@@ -33,12 +32,13 @@ class ManaCubeSpider(scrapy.Spider):
 
     def start_requests(self):
         url = f"https://bans.manacube.com/user?user={self.player_username}"
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
-        bans_tab = Selector(response).xpath("//div[@class='tab-pane' and @id='bans']")
-        table = bans_tab.xpath("//table[@class='table table-striped table-profile']")
-
+        table = response.css("div#bans.tab-pane.active table.table-profile")
         if table:
             for row in table.xpath(".//tr")[1:]:
                 columns = row.xpath(".//td")[1:]
@@ -65,6 +65,6 @@ class ManaCubeSpider(scrapy.Spider):
         date_string = date_string.replace("at", "")
         date_string = re.sub(r"(\d)(st|nd|rd|th)", r"\1", date_string)
         date_string = " ".join(date_string.split())
-        date_object = parse_date(date_string, settings={"TIMEZONE": "UTC"})
+        date_object = parse_date(date_string, settings={"TIMEZONE": "Etc/UTC"})
         timestamp = calculate_timestamp(date_object)
         return timestamp

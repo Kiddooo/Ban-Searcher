@@ -4,9 +4,9 @@ import dateparser
 import scrapy
 import tldextract
 from bs4 import BeautifulSoup
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import get_language, logger, translate
 
 # Constants for class names and other strings
 TABLE_CLASS = "i-table fullwidth"
@@ -47,6 +47,9 @@ class MCBansSpider(scrapy.Spider):
             A generator that yields a single `scrapy.Request` object.
         """
         url = f"https://www.mcbans.com/player/{self.player_uuid}/"
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):

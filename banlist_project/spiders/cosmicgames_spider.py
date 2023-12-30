@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 
 import scrapy
 import tldextract
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
 from utils import get_language, logger, translate
 
@@ -28,40 +28,35 @@ class CosmicGamesSpider(scrapy.Spider):
 
     def start_requests(self):
         url = urljoin(BASE_URL, self.player_username)
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
-        try:
-            json_response = json.loads(response.text)
-        except json.JSONDecodeError:
-            logger.error("Error decoding JSON")
-            raise
+        json_response = json.loads(response.text)
 
-        try:
-            for offence in json_response:
-                if offence.get("type", "").lower() == "ban":
-                    ban_reason = offence.get("reason", "")
-                    translated_reason = (
-                        translate(ban_reason)
-                        if get_language(ban_reason) != "en"
-                        else ban_reason
-                    )
-                    ban_date = int(offence.get("time", 0) / 1000)
-                    ban_expiration = (
-                        "Permanent"
-                        if offence.get("expiration", 0) == 0
-                        else int(offence.get("expiration", 0) / 1000)
-                    )
+        for offence in json_response:
+            if offence.get("type", "").lower() == "ban":
+                ban_reason = offence.get("reason", "")
+                translated_reason = (
+                    translate(ban_reason)
+                    if get_language(ban_reason) != "en"
+                    else ban_reason
+                )
+                ban_date = int(offence.get("time", 0) / 1000)
+                ban_expiration = (
+                    "Permanent"
+                    if offence.get("expiration", 0) == 0
+                    else int(offence.get("expiration", 0) / 1000)
+                )
 
-                    yield BanItem(
-                        {
-                            "source": tldextract.extract(response.url).domain,
-                            "url": response.url,
-                            "reason": translated_reason,
-                            "date": ban_date,
-                            "expires": ban_expiration,
-                        }
-                    )
-        except Exception as e:
-            logger.error("Error processing ban offences: " + str(e))
-            raise
+                yield BanItem(
+                    {
+                        "source": tldextract.extract(response.url).domain,
+                        "url": response.url,
+                        "reason": translated_reason,
+                        "date": ban_date,
+                        "expires": ban_expiration,
+                    }
+                )

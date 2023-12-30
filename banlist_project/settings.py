@@ -3,8 +3,8 @@ BOT_NAME = "banlist_project"
 SPIDER_MODULES = ["banlist_project.spiders"]
 NEWSPIDER_MODULE = "banlist_project.spiders"
 
-LOG_LEVEL = "WARNING"
-
+LOG_ENABLED = False
+# LOG_LEVEL = 'DEBUG'
 RETRY_TIMES = 1
 
 DOWNLOAD_TIMEOUT = 30

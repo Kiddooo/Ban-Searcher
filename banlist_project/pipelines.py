@@ -1,3 +1,8 @@
+from colorama import Fore, Style
+
+from utils import logger
+
+
 class BanPipeline:
     bans = []
 
@@ -54,6 +59,7 @@ class BanPipeline:
         self.username = spider.player_username
         self.player_uuid = spider.player_uuid
         self.player_uuid_dash = spider.player_uuid_dash
+        logger.info(f"{Fore.BLUE}Starting spider: {spider.name}{Style.RESET_ALL}")
 
     def process_item(self, item, spider):
         """
@@ -66,5 +72,8 @@ class BanPipeline:
         Returns:
             dict: The same item that was passed as input.
         """
+        logger.info(
+            f"{Fore.MAGENTA}{spider.name} | Found ban from source: {item.get('source')}{Style.RESET_ALL}"
+        )
         self.bans.append(item)
         return item

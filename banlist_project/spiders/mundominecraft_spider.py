@@ -2,9 +2,10 @@ import json
 from enum import Enum
 
 import scrapy
-
+import tldextract
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import get_language, logger, translate
 
 # Constants for repeated strings
 PLAYER_BANS = "playerBans"
@@ -74,13 +75,14 @@ class MundoMinecraftSpider(scrapy.Spider):
         self.headers["Referer"] = (
             "http://mundo-minecraft.com:3000/player/" + self.player_uuid_dash
         )
-
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         for query_type, query in self.queries.items():
             data = query.copy()
             data["variables"] = self.get_query_variables(
                 query_type, self.player_uuid_dash
             )
-
             yield scrapy.Request(
                 url,
                 method="POST",
@@ -132,10 +134,15 @@ class MundoMinecraftSpider(scrapy.Spider):
         reason = (
             translate(ban_reason) if get_language(ban_reason) != "en" else ban_reason
         )
-        date = ban["created"]
-        expires = (
-            "Permanent" if ban["expires"] == PERMANENT_BAN_EXPIRY else ban["expires"]
-        )
+        try:
+            if ban['expired']:
+                expires = ban["created"]
+                date = ban['pastCreated']
+        except KeyError:
+            expires = (
+                "Permanent" if ban["expires"] == PERMANENT_BAN_EXPIRY else ban["expires"]
+            )
+            date = ban['created']
 
         return BanItem(
             {
@@ -159,7 +166,7 @@ class MundoMinecraftSpider(scrapy.Spider):
             dict: A dictionary containing the variables for the GraphQL query based on the type input.
         """
         variables = {
-            "LIST_PLAYER_PUNISHMENT_RECORDS": {
+            "listPlayerPunishmentRecords": {
                 "activePage": 1,
                 "limit": 20,
                 "offset": 0,
@@ -167,6 +174,6 @@ class MundoMinecraftSpider(scrapy.Spider):
                 "player": user_uuid,
                 "type": "PlayerBanRecord",
             },
-            "PLAYER_BANS": {"id": user_uuid},
+            "playerBans": {"id": user_uuid},
         }
         return variables.get(type, {})

@@ -4,9 +4,9 @@ import dateparser
 import tldextract
 from bs4 import BeautifulSoup
 from scrapy import Request, Spider
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import get_language, logger, translate
 
 
 class DemocracycraftSpider(Spider):
@@ -40,6 +40,9 @@ class DemocracycraftSpider(Spider):
         """
         base_url = "https://www.democracycraft.net/logs/user/"
         url = urljoin(base_url, self.player_username)
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield Request(url, callback=self.parse, meta={"dont_redirect": True})
 
     def parse(self, response):

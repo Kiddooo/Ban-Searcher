@@ -27,7 +27,7 @@ class BanItem(scrapy.Item):
             dict: A dictionary representation of the BanItem object.
         """
         return {
-            "source": self["source"],
+            "source": self["source"].capitalize(),
             "url": self["url"],
             "reason": self["reason"],
             "date": self["date"],

@@ -4,9 +4,9 @@ from typing import Union
 import dateparser
 import scrapy
 import tldextract
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import get_language, logger, translate
 
 
 class CubevilleSpider(scrapy.Spider):
@@ -44,6 +44,9 @@ class CubevilleSpider(scrapy.Spider):
             A generator object that yields Scrapy `Request` objects.
         """
         url = f"https://www.cubeville.org/cv-site/banlist.php/{self.player_username}"
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):

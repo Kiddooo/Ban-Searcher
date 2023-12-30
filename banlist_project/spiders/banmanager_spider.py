@@ -3,11 +3,10 @@ import unicodedata
 import dateparser
 import scrapy
 import tldextract
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import get_language, translate
+from utils import get_language, logger, translate
 
-# Define constants
 URLS = [
     "http://mc.virtualgate.org/ban/index.php?action=viewplayer&player=",
     # "https://woodymc.de/BanManager/index.php?action=viewplayer&player=", # CLOSED
@@ -15,7 +14,6 @@ URLS = [
 ]
 
 
-# Define BanManagerSpider class
 class BanManagerSpider(scrapy.Spider):
     name = "BanManagerSpider"
 
@@ -57,6 +55,9 @@ class BanManagerSpider(scrapy.Spider):
             scrapy.Request: A request object for each URL with a callback function set to `parse`.
         """
         for url in self.urls:
+            logger.info(
+                f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+            )
             modified_url = f"{url}{self.player_username}&server=0"
             yield scrapy.Request(url=modified_url, callback=self.parse)
 
@@ -82,12 +83,13 @@ class BanManagerSpider(scrapy.Spider):
                     if len(columns) == 2:
                         key = columns[0].css("td::text").get().replace(":", "").lower()
                         value = columns[1].css("td::text").get()
+                        if value is None:
+                            value = columns[1].css('td.expires span::text').get()
                         current_ban[key] = value
 
                 current_ban = list(current_ban.items())
                 ban_start_date_str = current_ban[2][1]
                 ban_start_date = dateparser.parse(ban_start_date_str)
-
                 ban_length_str = unicodedata.normalize("NFC", current_ban[0][1])
                 permanent_ban_strings = [
                     "Permanent",

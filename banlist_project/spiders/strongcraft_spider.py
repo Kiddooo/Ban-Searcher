@@ -1,9 +1,9 @@
 import scrapy
 import tldextract
 from bs4 import BeautifulSoup
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import calculate_timestamp, get_language, parse_date, translate
+from utils import calculate_timestamp, get_language, logger, parse_date, translate
 
 BAN_STATUS_LENGTH_NOT_BANNED = 2
 BAN_STATUS_LENGTH_BANNED = 3
@@ -42,6 +42,9 @@ class StrongcraftSpider(scrapy.Spider):
             A generator of scrapy.Request objects for each player profile URL.
         """
         url = f"https://www.strongcraft.org/players/{self.player_username}/"
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield scrapy.Request(url, callback=self.parse, meta={"dont_redirect": True})
 
     def parse(self, response):
@@ -56,7 +59,6 @@ class StrongcraftSpider(scrapy.Spider):
             BanItem: If the player is banned, the method yields a BanItem object containing the ban details.
         """
         soup = BeautifulSoup(response.text, "lxml")
-
         if soup.find(
             text="Here you can look for the profile of any player on our network."
         ):
@@ -67,7 +69,7 @@ class StrongcraftSpider(scrapy.Spider):
             return
         elif len(ban_status_elements) == BAN_STATUS_LENGTH_BANNED:
             if "banned" in ban_status_elements[2].text.lower().strip():
-                self.parse_ban_details(soup, response)
+                yield from self.parse_ban_details(soup, response)
 
     def parse_ban_details(self, soup, response):
         """
@@ -82,24 +84,22 @@ class StrongcraftSpider(scrapy.Spider):
         """
         table = soup.find("div", class_="container youplay-content")
         if table is not None:
-            rows = table.find_all("p")[1:]  # Skip the header row
+            row = table.find_all("p")[2:-1][0]  # Skip the header row
+            ban_date, ban_reason = (
+                row.text.split("(")[0].replace("The player is banned since ", ""),
+                row.text.split("(")[1].split(")")[0],
+            )
 
-            for row in rows:
-                ban_date, ban_reason = (
-                    row.text.split("(")[0].replace("The player is banned since ", ""),
-                    row.text.split("(")[1].split(")")[0],
-                )
-
-                yield BanItem(
-                    {
-                        "source": tldextract.extract(response.url).domain,
-                        "url": response.url,
-                        "reason": translate(ban_reason)
-                        if get_language(ban_reason) != "en"
-                        else ban_reason,
-                        "date": calculate_timestamp(parse_date(ban_date)),
-                        "expires": "Permanent"
-                        if row.text.split(",")[1].strip() == "ban is permanent."
-                        else row.text.split(",")[1].strip(),
-                    }
-                )
+            yield BanItem(
+                {
+                    "source": tldextract.extract(response.url).domain,
+                    "url": response.url,
+                    "reason": translate(ban_reason)
+                    if get_language(ban_reason) != "en"
+                    else ban_reason,
+                    "date": calculate_timestamp(parse_date(ban_date, settings={})),
+                    "expires": "Permanent"
+                    if row.text.split(",")[1].strip() == "ban is permanent."
+                    else row.text.split(",")[1].strip(),
+                }
+            )

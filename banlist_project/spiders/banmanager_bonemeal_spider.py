@@ -3,9 +3,10 @@ from urllib.parse import urljoin
 
 import dateparser
 import scrapy
-
+import tldextract
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import calculate_timestamp, parse_date, translate
+from utils import calculate_timestamp, logger, parse_date, translate
 
 
 class BanManagerBonemealSpider(scrapy.Spider):
@@ -26,6 +27,9 @@ class BanManagerBonemealSpider(scrapy.Spider):
     def start_requests(self):
         base_url = "https://mineyourmind.net/bans/index.php/players/"
         url = urljoin(base_url, self.player_uuid)
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
@@ -55,11 +59,11 @@ class BanManagerBonemealSpider(scrapy.Spider):
 
     def parse_ban_date(self, item):
         ban_date_str = item.css("small.text-muted::attr(title)").get()
-        return parse_date(ban_date_str)
+        return parse_date(ban_date_str, settings={})
 
     def parse_ban_start_date(self, item):
         ban_start_date_str = item.css("small.text-muted::attr(title)").get()
-        return parse_date(ban_start_date_str)
+        return parse_date(ban_start_date_str, settings={})
 
     def calculate_ban_end_timestamp(self, item, ban_start_date):
         ban_text = item.css("div.timeline-body::text").get().strip()

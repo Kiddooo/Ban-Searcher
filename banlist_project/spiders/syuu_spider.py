@@ -1,9 +1,9 @@
 import scrapy
 import tldextract
 from bs4 import BeautifulSoup
-
+from colorama import Fore, Style
 from banlist_project.items import BanItem
-from utils import calculate_timestamp, get_language, parse_date, translate
+from utils import calculate_timestamp, get_language, logger, parse_date, translate
 
 # Constants for better readability
 HEADER_ROW_INDEX = 1
@@ -40,6 +40,9 @@ class SyuuSpider(scrapy.Spider):
         Construct the URL using the player's UUID, make a request to that URL, and call the parse function when the request is completed.
         """
         url = f"https://www.syuu.net/user/{self.player_uuid_dash}"
+        logger.info(
+            f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
+        )
         yield scrapy.Request(url, callback=self.parse, meta={"flare_solver": True})
 
     def parse(self, response):
@@ -100,8 +103,8 @@ class SyuuSpider(scrapy.Spider):
                 if get_language(ban_reason) != "en"
                 else ban_reason
             )
-            date = calculate_timestamp(parse_date(rows[2].find_all("td")[1].text))
-            expires = calculate_timestamp(parse_date(rows[3].find_all("td")[1].text))
+            date = calculate_timestamp(parse_date(rows[2].find_all("td")[1].text, settings={}))
+            expires = calculate_timestamp(parse_date(rows[3].find_all("td")[1].text, settings={}))
 
             # Create a BanItem object with the extracted information
             ban_item = BanItem(

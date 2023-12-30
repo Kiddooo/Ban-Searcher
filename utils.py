@@ -1,7 +1,7 @@
-import re
-from datetime import datetime
 import logging
 import os
+import re
+from datetime import datetime, timezone
 
 import dateparser
 import requests
@@ -16,7 +16,9 @@ FLARESOLVER_URL = "http://localhost:8191/v1"
 logger = logging.getLogger("Ban-Scraper")
 logger.setLevel(logging.INFO)
 handler = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+formatter = logging.Formatter(
+    "%(asctime)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
@@ -24,7 +26,8 @@ logger.addHandler(handler)
 class DateParsingError(Exception):
     pass
 
-def parse_date(date_str):
+
+def parse_date(date_str: str, settings: dict):
     """
     Parses a date string and returns the corresponding date object.
 
@@ -42,19 +45,22 @@ def parse_date(date_str):
         if not isinstance(date_str, str):
             raise ValueError("date_str must be a string")
 
-        date_str = re.sub(r'\bklo\b', '', date_str).split(" (")[0].strip()
+        date_str = re.sub(r"\bklo\b", "", date_str).split(" (")[0].strip()
         permanent_ban_types = {"Permanent Ban", "Permanentni", "Ban Permanente"}
 
         if date_str in permanent_ban_types:
             ban_expires = "Permanent"
         else:
-            ban_expires = dateparser.parse(date_str)
+            ban_expires = dateparser.parse(date_str, settings=settings)
 
         return ban_expires
 
     except Exception as e:
         logging.error(f"Error parsing date: {date_str}: {str(e)}")
-        raise DateParsingError(f"Error parsing date: {date_str}: {str(e)}") from DateParsingError
+        raise DateParsingError(
+            f"Error parsing date: {date_str}: {str(e)}"
+        ) from DateParsingError
+
 
 def calculate_timestamp(date):
     """
@@ -71,9 +77,9 @@ def calculate_timestamp(date):
     elif isinstance(date, str):
         return date
     elif isinstance(date, datetime):
-        return int(date.timestamp())
+        return int(date.replace(tzinfo=timezone.utc).timestamp())
     else:
-        raise TypeError('Invalid input type for `date`')
+        raise TypeError("Invalid input type for `date`")
 
 
 def get_language(text: str) -> str:
