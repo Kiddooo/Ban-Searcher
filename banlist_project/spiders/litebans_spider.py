@@ -280,7 +280,7 @@ class LiteBansSpider(scrapy.Spider):
         Returns:
             tuple: The current page number and total number of pages.
         """
-        page_info_text = page_info_div[0].get_text()
+        page_info_text = page_info_div.get_text()
         current_page, total_pages = map(int, re.findall(r"\d+", page_info_text))
         return current_page, total_pages
 

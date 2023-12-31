@@ -6,7 +6,6 @@ NEWSPIDER_MODULE = "banlist_project.spiders"
 LOG_ENABLED = False
 # LOG_LEVEL = 'DEBUG'
 RETRY_TIMES = 1
-
 DOWNLOAD_TIMEOUT = 30
 
 USER_AGENT = "Mozilla/5.0 (iPad; CPU OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
@@ -27,6 +26,12 @@ ITEM_PIPELINES = {
 AUTOTHROTTLE_ENABLED = True
 AUTOTHROTTLE_MAX_DELAY = 60
 
+DNSCACHE_ENABLED = True
+
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
+
+
+DOWNLOADER_STATS = False
+STATS_DUMP = False
