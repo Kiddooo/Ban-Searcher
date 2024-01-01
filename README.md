@@ -4,12 +4,7 @@
 
 ## ◦ Developed with the software and tools below
 
-![GNU Bash](https://img.shields.io/badge/GNU%20Bash-4EAA25.svg?style=for-the-badge&logo=GNU-Bash&logoColor=white)
-![YAML](https://img.shields.io/badge/YAML-CB171E.svg?style=for-the-badge&logo=YAML&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3776AB.svg?style=for-the-badge&logo=Python&logoColor=white)
-![Flask](https://img.shields.io/badge/Flask-000000.svg?style=for-the-badge&logo=Flask&logoColor=white)
-![Git](https://img.shields.io/badge/Git-F05032.svg?style=for-the-badge&logo=Git&logoColor=white)
-
 ---
 
 ## 📖 Table of Contents
@@ -19,7 +14,7 @@
 - [📍 Overview](#-overview)
 - [📦 Features](#-features)
 - [📂 repository Structure](#-repository-structure)
-- [⚙️ Modules](#⚙️-Modules)
+- [⚙️ Modules](#⚙️-modules)
 - [🚀 Getting Started](#-getting-started)
   - [🔧 Installation](#-installation)
   - [🤖 Running ](#🤖-running)
