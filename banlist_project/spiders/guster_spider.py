@@ -4,8 +4,9 @@ import re
 import scrapy
 import tldextract
 from colorama import Fore, Style
+
 from banlist_project.items import BanItem
-from utils import get_language, logger, translate, calculate_timestamp, parse_date
+from utils import calculate_timestamp, get_language, logger, parse_date, translate
 
 # Constants
 BASE_URL = "https://bans.guster.ro/api.php?type=player&player={}&page={}&perpage=25"
@@ -15,7 +16,7 @@ class GusterSpider(scrapy.Spider):
     name = "GusterSpider"
 
     custom_settings = {
-        'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter',
+        "DUPEFILTER_CLASS": "scrapy.dupefilters.BaseDupeFilter",
     }
 
     def __init__(
@@ -98,9 +99,11 @@ class GusterSpider(scrapy.Spider):
                     if get_language(ban["reason"]) != "en"
                     else ban["reason"]
                 )
-                date = calculate_timestamp(parse_date(ban['date'], settings={}))
+                date = calculate_timestamp(parse_date(ban["date"], settings={}))
 
-                expires_match = re.search(r"\d{2}:\d{2}:\d{2} \d{2}.\d{2}.\d{4}", ban["expire"])
+                expires_match = re.search(
+                    r"\d{2}:\d{2}:\d{2} \d{2}.\d{2}.\d{4}", ban["expire"]
+                )
                 expires = (
                     calculate_timestamp(parse_date(expires_match.group(), settings={}))
                     if expires_match
@@ -108,11 +111,11 @@ class GusterSpider(scrapy.Spider):
                 )
 
                 yield BanItem(
-                        {
-                            "source": tldextract.extract(response.url).domain,
-                            "reason": reason,
-                            "url": response.url,
-                            "date": date,
-                            "expires": expires,
-                        }
-                    )
+                    {
+                        "source": tldextract.extract(response.url).domain,
+                        "reason": reason,
+                        "url": response.url,
+                        "date": date,
+                        "expires": expires,
+                    }
+                )

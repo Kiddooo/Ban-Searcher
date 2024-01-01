@@ -105,7 +105,13 @@ if __name__ == "__main__":
 
     start_crawling_process(player_username, player_uuid, player_uuid_dash)
 
-    logger.info(f"{Fore.GREEN} Finished crawling! Found {len(BanPipeline.bans)} bans. Opening Report...{Style.RESET_ALL}")
+    logger.info(
+        f"{Fore.GREEN} Finished crawling! Found {len(BanPipeline.bans)} bans. Opening Report...{Style.RESET_ALL}"
+    )
 
-    player_report = PlayerReport(player_username, player_uuid_dash, sorted(BanPipeline.bans, key=lambda x: x['source']))
+    player_report = PlayerReport(
+        player_username,
+        player_uuid_dash,
+        sorted(BanPipeline.bans, key=lambda x: x["source"]),
+    )
     player_report.generate_report()

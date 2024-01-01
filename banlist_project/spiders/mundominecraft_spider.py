@@ -4,6 +4,7 @@ from enum import Enum
 import scrapy
 import tldextract
 from colorama import Fore, Style
+
 from banlist_project.items import BanItem
 from utils import get_language, logger, translate
 
@@ -135,14 +136,16 @@ class MundoMinecraftSpider(scrapy.Spider):
             translate(ban_reason) if get_language(ban_reason) != "en" else ban_reason
         )
         try:
-            if ban['expired']:
+            if ban["expired"]:
                 expires = ban["created"]
-                date = ban['pastCreated']
+                date = ban["pastCreated"]
         except KeyError:
             expires = (
-                "Permanent" if ban["expires"] == PERMANENT_BAN_EXPIRY else ban["expires"]
+                "Permanent"
+                if ban["expires"] == PERMANENT_BAN_EXPIRY
+                else ban["expires"]
             )
-            date = ban['created']
+            date = ban["created"]
 
         return BanItem(
             {

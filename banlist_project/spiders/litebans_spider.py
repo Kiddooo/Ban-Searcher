@@ -127,7 +127,7 @@ class LiteBansSpider(scrapy.Spider):
             "https://play.hellominers.com/bans/history.php?uuid=",
             "https://nytro.co/bans/history.php?uuid=",
             "https://www.pickaxemania.com/playerstatus/history.php?uuid=",
-            "https://opblocks.com/bans/history.php?uuid="
+            "https://opblocks.com/bans/history.php?uuid=",
         ]
         for url in urls2:
             url = url + self.player_uuid_dash
@@ -179,7 +179,9 @@ class LiteBansSpider(scrapy.Spider):
 
             page_info_div = soup.find("div", class_="litebans-pager-number")
             if not page_info_div:
-                page_info_div = soup.select("div.container.containerCC div.col-lg-12 div div")
+                page_info_div = soup.select(
+                    "div.container.containerCC div.col-lg-12 div div"
+                )
 
             if page_info_div:
                 current_page, total_pages = self.extract_pagination_info(page_info_div)
@@ -187,11 +189,14 @@ class LiteBansSpider(scrapy.Spider):
                 if current_page < total_pages:
                     next_page_url = self.find_next_page_url(response.url, soup)
                     if next_page_url:
-                        if 'saicopvp' in next_page_url:
-                            yield scrapy.Request(next_page_url, callback=self.parse, meta={'flare_solver': True})
+                        if "saicopvp" in next_page_url:
+                            yield scrapy.Request(
+                                next_page_url,
+                                callback=self.parse,
+                                meta={"flare_solver": True},
+                            )
                         else:
                             yield scrapy.Request(next_page_url, callback=self.parse)
-
 
     def extract_headers(self, table):
         """

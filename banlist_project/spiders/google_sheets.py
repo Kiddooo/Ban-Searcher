@@ -86,6 +86,7 @@ class GoogleSheetsSpider(scrapy.Spider):
         logger.info(
             f"{Fore.YELLOW}{self.name} | Started Scraping: {SPREADSHEET_ID}{Style.RESET_ALL}"
         )
+
         def create_ban_item(row: List[str], source: str, url: str) -> BanItem:
             return BanItem(
                 {

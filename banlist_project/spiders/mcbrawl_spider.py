@@ -2,6 +2,7 @@ import scrapy
 import tldextract
 from bs4 import BeautifulSoup
 from colorama import Fore, Style
+
 from banlist_project.items import BanItem
 from utils import calculate_timestamp, get_language, logger, parse_date, translate
 
@@ -90,6 +91,8 @@ class MCBrawlSpider(scrapy.Spider):
                                 ),
                                 "expires": "N/A"
                                 if columns[2].text == ""
-                                else calculate_timestamp(parse_date(columns[2].text, settings={})),
+                                else calculate_timestamp(
+                                    parse_date(columns[2].text, settings={})
+                                ),
                             }
                         )

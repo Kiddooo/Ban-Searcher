@@ -4,6 +4,7 @@ import dateparser
 import scrapy
 import tldextract
 from colorama import Fore, Style
+
 from banlist_project.items import BanItem
 from utils import get_language, logger, translate
 
@@ -72,14 +73,26 @@ class MajncraftSpider(scrapy.Spider):
 
     def extract_ban_details(self, panel, response):
         # Extract the ban reason
-        ban_reason = panel.xpath(".//div[contains(@class, 'col-sm-7')]/text()[last()]").get().strip()
+        ban_reason = (
+            panel.xpath(".//div[contains(@class, 'col-sm-7')]/text()[last()]")
+            .get()
+            .strip()
+        )
 
         # Extract the ban date
-        ban_date = panel.xpath(".//div[contains(@class, 'col-sm-1') and contains(@class, 'text-center')][1]/text()").getall()
-        ban_date = ' '.join([x.strip() for x in ban_date if x.strip()])
+        ban_date = panel.xpath(
+            ".//div[contains(@class, 'col-sm-1') and contains(@class, 'text-center')][1]/text()"
+        ).getall()
+        ban_date = " ".join([x.strip() for x in ban_date if x.strip()])
 
         # Extract the ban expiration
-        expires = panel.xpath(".//div[contains(@class, 'col-sm-1') and contains(@class, 'text-center')][2]/text()[last()]").get().strip()
+        expires = (
+            panel.xpath(
+                ".//div[contains(@class, 'col-sm-1') and contains(@class, 'text-center')][2]/text()[last()]"
+            )
+            .get()
+            .strip()
+        )
 
         # Return a BanItem with the extracted details
         yield BanItem(
