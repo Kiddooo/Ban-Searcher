@@ -1,7 +1,8 @@
 import tldextract
 from bs4 import BeautifulSoup
-from scrapy import Request, Spider
 from colorama import Fore, Style
+from scrapy import Request, Spider
+
 from banlist_project.items import BanItem
 from utils import get_language, logger, translate
 

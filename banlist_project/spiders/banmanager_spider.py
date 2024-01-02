@@ -4,6 +4,7 @@ import dateparser
 import scrapy
 import tldextract
 from colorama import Fore, Style
+
 from banlist_project.items import BanItem
 from utils import get_language, logger, translate
 
@@ -84,7 +85,7 @@ class BanManagerSpider(scrapy.Spider):
                         key = columns[0].css("td::text").get().replace(":", "").lower()
                         value = columns[1].css("td::text").get()
                         if value is None:
-                            value = columns[1].css('td.expires span::text').get()
+                            value = columns[1].css("td.expires span::text").get()
                         current_ban[key] = value
 
                 current_ban = list(current_ban.items())

@@ -3,6 +3,7 @@ import scrapy
 import tldextract
 from bs4 import BeautifulSoup, Comment
 from colorama import Fore, Style
+
 from banlist_project.items import BanItem
 from utils import get_language, logger, translate
 
