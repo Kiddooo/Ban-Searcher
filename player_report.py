@@ -5,6 +5,7 @@ import time
 import webbrowser
 from pathlib import Path
 
+
 class ReportGenerationError(Exception):
     """
     Custom exception class that is raised when an error occurs during the generation of a report.
@@ -30,6 +31,7 @@ class PlayerReport:
         self.bans = bans
         self.script_dir = Path(__file__).resolve().parent
         self.frontend_dir = self.script_dir / "report"
+
     def generate_report(self):
         """
         Generates a report for a player.
@@ -101,18 +103,13 @@ class PlayerReport:
         This code initializes a PlayerReport object with the player's username, UUID, and bans data. Then, it calls the _serve_report_and_open_browser method to generate and serve the report in a web browser.
         """
         frontend_dir = self.frontend_dir.resolve()
-        server_cmd = [
-            sys.executable,
-            "report.py"
-        ]
+        server_cmd = [sys.executable, "report.py"]
         print(server_cmd)
         with subprocess.Popen(
             server_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=frontend_dir
         ) as p:  # nosec
             try:
-                webbrowser.open(
-                    "http://127.0.0.1:8000", new=2, autoraise=True
-                )
+                webbrowser.open("http://127.0.0.1:8000", new=2, autoraise=True)
                 time.sleep(5)
             finally:
                 p.terminate()  # Make sure the server is terminated

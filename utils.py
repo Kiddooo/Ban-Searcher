@@ -20,6 +20,7 @@ formatter = logging.Formatter("%(asctime)s - %(message)s", datefmt="%Y-%m-%d %H:
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+
 class DateParsingError(Exception):
     pass
 
