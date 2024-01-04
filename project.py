@@ -88,7 +88,8 @@ def start_crawling_process(username: str, uuid: str, uuid_dash: str) -> None:
     """
     process = CrawlerProcess(get_project_settings())
     for spider_name in process.spider_loader.list():
-        process.crawl(
+        if spider_name == "ManaCubeSpider":
+            process.crawl(
             spider_name,
             username=username,
             player_uuid=uuid,

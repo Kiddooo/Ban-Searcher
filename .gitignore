@@ -161,6 +161,7 @@ cython_debug/
 
 .cosine
 .trunk
+report/bans.json
 credentials.json
 test_players
 bedrock_uuid.txt

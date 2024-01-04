@@ -5,11 +5,6 @@ import time
 import webbrowser
 from pathlib import Path
 
-from flask import Flask
-
-app = Flask(__name__)
-
-
 class ReportGenerationError(Exception):
     """
     Custom exception class that is raised when an error occurs during the generation of a report.
@@ -34,8 +29,7 @@ class PlayerReport:
         self.player_uuid = player_uuid
         self.bans = bans
         self.script_dir = Path(__file__).resolve().parent
-        self.frontend_dir = self.script_dir / "SecretFrontend"
-
+        self.frontend_dir = self.script_dir / "report"
     def generate_report(self):
         """
         Generates a report for a player.
@@ -109,18 +103,15 @@ class PlayerReport:
         frontend_dir = self.frontend_dir.resolve()
         server_cmd = [
             sys.executable,
-            "-m",
-            "http.server",
-            "--bind",
-            "127.0.0.1",
-            "8000",
+            "report.py"
         ]
+        print(server_cmd)
         with subprocess.Popen(
             server_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=frontend_dir
         ) as p:  # nosec
             try:
                 webbrowser.open(
-                    "http://127.0.0.1:8000/index.html", new=2, autoraise=True
+                    "http://127.0.0.1:8000", new=2, autoraise=True
                 )
                 time.sleep(5)
             finally:
@@ -138,26 +129,3 @@ class PlayerReport:
             None if the object does not have a `to_json` method.
         """
         return obj.to_json() if hasattr(obj, "to_json") else None
-
-
-@app.route("/")
-def serve_report_and_open_browser():
-    """
-    Serves a report in a web browser by opening the browser to a specific URL.
-
-    Example Usage:
-    serve_report_and_open_browser()
-
-    Inputs:
-    None
-
-    Outputs:
-    - Opens a web browser to the specified URL.
-    - Returns the string "Server is running".
-    """
-    webbrowser.open("http://127.0.0.1:5000/index.html", new=2, autoraise=True)
-    return "Server is running"
-
-
-if __name__ == "__main__":
-    app.run()

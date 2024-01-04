@@ -1,0 +1,87 @@
+body {
+   background-color: #1e1e1e;
+   color: #fff;
+   font-family: 'Inter', sans-serif;
+}
+
+.main {
+   max-width: 800px;
+   margin: 2rem auto;
+   padding: 2rem;
+   background-color: #2d2d2d;
+   border-radius: 10px;
+   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.flex-container {
+   display: flex;
+   justify-content: space-between;
+   background-color: #2d2d2d;
+}
+
+.main-content {
+   flex: 1;
+   margin-right: 20px;
+   background-color: #2d2d2d;
+}
+
+.player-skin {
+   flex: 0 0 200px;
+   background-color: #2d2d2d;
+}
+
+h1,
+h2,
+h3,
+p {
+   text-shadow: 3px 3px #000;
+}
+
+h3 {
+   font-size: 1rem;
+}
+
+h2 {
+   font-size: 1rem;
+}
+
+.left_margin {
+   margin-left:1rem
+}
+
+.white_text {
+   color: #fff;
+}
+
+.username_header {
+   font-size: 2rem;
+   margin-left: 1rem;
+   margin-top: 1rem;
+}
+
+.link_color {
+   color: skyblue;
+}
+
+.ban_item {
+   background-color: #333;
+   padding: 1rem;
+   border-radius: 8px;
+   margin-bottom: 1rem;
+}
+
+.ban_item p {
+   margin-bottom: 0;
+}
+
+.footer_size {
+   font-size: 0.875rem;
+   text-align: center;
+   margin-top: 2rem;
+}
+
+.bottom_center {
+   position: static;
+   transform: none;
+   margin-top: 2rem;
+}
