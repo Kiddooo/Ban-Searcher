@@ -104,7 +104,6 @@ class PlayerReport:
         """
         frontend_dir = self.frontend_dir.resolve()
         server_cmd = [sys.executable, "report.py"]
-        print(server_cmd)
         with subprocess.Popen(
             server_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=frontend_dir
         ) as p:  # nosec
