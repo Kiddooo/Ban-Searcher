@@ -1,81 +1,119 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 
 <head>
-   <title>Report Page</title>
-   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter">
-   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/index.css') }}">
+    <title>Report Page</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/index.css') }}" />
 </head>
 
 <body>
-   <div class="flex-container">
-      <div class="main-content">
-         <h1 class="white_text username_header">Report on <strong id="username">...</strong></h1>
-         <h2 class="white_text left_margin responsive_h2">UUID: <span id="uuid">...</span></h2>
-         <h3 class="white_text left_margin responsive_h3">Number of Punishments: <span id="punishments">...</span></h3>
-         <h3 class="white_text left_margin responsive_h3">Recommendation: <span id="recommendation">...</span></h3>
-         <h3 class="white_text left_margin responsive_h3">Name History: <a id="namemc-link" class="link_color" href="#">NameMC</a> | <a id="laby-link" class="link_color" href="#">Laby</a></h3>
-         <h2 class="white_text left_margin ban_list_header responsive_h2"><strong>List of Bans:</strong></h2>
-         <div id="bans_list">
-            <!-- Ban items will be dynamically inserted here -->
-         </div>
-         <p class="footer_size bottom_center">This report has been automatically generated. Information may be
-            inaccurate or outdated in some cases.</p>
+    <div class="flex-container">
+        <div class="main-content">
+            <h1 class="white_text username_header">
+                Report on <strong id="username">...</strong>
+            </h1>
+            <h2 class="white_text left_margin responsive_h2">
+                UUID: <span id="uuid">...</span>
+            </h2>
+            <h3 class="white_text left_margin responsive_h3">
+                Number of Punishments: <span id="punishments">...</span>
+            </h3>
+            <h3 class="white_text left_margin responsive_h3">
+                Recommendation: <span id="recommendation">...</span>
+            </h3>
+            <h3 class="white_text left_margin responsive_h3">
+                Name History:
+                <a id="namemc-link" class="link_color" href="#">NameMC</a> |
+                <a id="laby-link" class="link_color" href="#">Laby</a>
+            </h3>
+            <h2 class="white_text left_margin ban_list_header responsive_h2">
+                <strong>List of Bans:</strong>
+            </h2>
+            <div id="bans_list">
+                <!-- Ban items will be dynamically inserted here -->
+            </div>
+            <p class="footer_size bottom_center">
+                This report has been automatically generated. Information may be
+                inaccurate or outdated in some cases.
+            </p>
+        </div>
+        <div class="player-skin">
+            <img id="player-skin" alt="The skin of the Player." loading="lazy" class="img-fluid" src="#" />
+        </div>
+    </div>
 
-      </div>
-      <div class="player-skin">
-         <img id="player-skin" alt="The skin of the Player." loading="lazy" class="img-fluid" src="#" />
-      </div>
-   </div>
+    <script>
+        // Function to format the date or return the provided text
+        function formatDateOrText(text) {
+            if (text === "N/A" || text === "Permanent") {
+                return text;
+            }
+            try {
+                // Attempt to parse the text as an integer and convert to a date
+                const date = new Date(parseInt(text) * 1000);
+                return isNaN(date.getTime()) ? "Invalid Date" : date.toLocaleString();
+            } catch (e) {
+                // In case of any error, return "Invalid Date"
+                return "Invalid Date";
+            }
+        }
 
-   <script>
-      // Function to format the date or return the provided text
-      function formatDateOrText(text) {
-         if (text === "N/A" || text === "Permanent") {
-            return text;
-         }
-         try {
-            // Attempt to parse the text as an integer and convert to a date
-            const date = new Date(parseInt(text) * 1000);
-            return isNaN(date.getTime()) ? "Invalid Date" : date.toLocaleString();
-         } catch (e) {
-            // In case of any error, return "Invalid Date"
-            return "Invalid Date";
-         }
-      }
+        // Fetch the report details from the Flask API and display them
+        fetch("/api/report")
+            .then((response) => response.json())
+            .then((data) => {
+                // Update report details
+                console.log(data);
+                document.getElementById("username").textContent = data.username;
+                document.getElementById("uuid").textContent = data.uuid;
+                document.getElementById("punishments").textContent = data.totalbans;
+                document.getElementById("recommendation").textContent =
+                    data.totalbans === 0
+                        ? "Safe"
+                        : data.totalPunishments > 0 && data.totalPunishments <= 5
+                            ? "Use Discretion"
+                            : "Disallow";
+                document
+                    .getElementById("namemc-link")
+                    .setAttribute("href", `https://namemc.com/profile/${data.uuid}`);
+                document
+                    .getElementById("laby-link")
+                    .setAttribute("href", `https://laby.net/@${data.uuid}`);
+                document
+                    .getElementById("player-skin")
+                    .setAttribute(
+                        "src",
+                        `https://visage.surgeplay.com/frontfull/540/${data.uuid}`,
+                    );
 
-      // Fetch the report details from the Flask API and display them
-      fetch('/api/report')
-         .then(response => response.json())
-         .then(data => {
-            // Update report details
-            console.log(data);
-            document.getElementById('username').textContent = data.username;
-            document.getElementById('uuid').textContent = data.uuid;
-            document.getElementById('punishments').textContent = data.totalbans;
-            document.getElementById('recommendation').textContent = data.totalbans === 0 ? "Safe" : data.totalPunishments > 0 && data.totalPunishments <= 5 ? "Use Discretion" : "Disallow";
-            document.getElementById('namemc-link').setAttribute('href', `https://namemc.com/profile/${data.uuid}`);
-            document.getElementById('laby-link').setAttribute('href', `https://laby.net/@${data.uuid}`);
-            document.getElementById('player-skin').setAttribute('src', `https://visage.surgeplay.com/frontfull/540/${data.uuid}`);
-
-            // Update the list of bans
-            const bansListContainer = document.getElementById('bans_list');
-            data.bans.forEach(ban => {
-               const banItem = document.createElement('div');
-               banItem.classList.add('ban_item');
-               banItem.innerHTML = `
-                      <p class="white_text responsive_entry_text">Source: ${ban.source}</p>
-                      <p class="white_text responsive_entry_text">Link: <a class="link_color" href="${ban.url}">Click Here</a></p>
-                      <p class="white_text responsive_entry_text">Reason: ${ban.reason}</p>
-                      <p class="white_text responsive_entry_text">Banned At: ${formatDateOrText(ban.date)}</p>
-                      <p class="white_text responsive_entry_text">Expires At: ${formatDateOrText(ban.expires)}</p>
+                // Update the list of bans
+                const bansListContainer = document.getElementById("bans_list");
+                data.bans.forEach((ban) => {
+                    const banItem = document.createElement("div");
+                    banItem.classList.add("ban_item");
+                    banItem.innerHTML = `
+                      <p class="white_text responsive_entry_text">Source: ${ban.source
+                        }</p>
+                      <p class="white_text responsive_entry_text">Link: <a class="link_color" href="${ban.url
+                        }">Click Here</a></p>
+                      <p class="white_text responsive_entry_text">Reason: ${ban.reason
+                        }</p>
+                      <p class="white_text responsive_entry_text">Banned At: ${formatDateOrText(
+                            ban.date,
+                        )}</p>
+                      <p class="white_text responsive_entry_text">Expires At: ${formatDateOrText(
+                            ban.expires,
+                        )}</p>
                   `;
-               bansListContainer.appendChild(banItem);
-            });
-         })
-         .catch(error => console.error('Error fetching report details:', error));
-   </script>
+                    bansListContainer.appendChild(banItem);
+                });
+            })
+            .catch((error) =>
+                console.error("Error fetching report details:", error),
+            );
+    </script>
 </body>
 
 </html>

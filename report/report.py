@@ -1,5 +1,6 @@
-from flask import Flask, jsonify, render_template
 import json
+
+from flask import Flask, jsonify, render_template
 
 app = Flask(__name__)
 
@@ -16,4 +17,4 @@ def get_report():
     return jsonify(report_details)
 
 
-app.run(debug=False, host="127.0.0.1", port=8000)
+app.run(host="127.0.0.1", port=8000)
