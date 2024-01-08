@@ -32,7 +32,7 @@
 > - [🧩 Modules](#-modules)
 > - [🚀 Getting Started](#-getting-started)
 >   - [⚙️ Installation](#️-installation)
->   - [🤖 Running Ban-Searcher](#🤖-running-ban-searcher)
+>   - [🤖 Running Ban-Searcher](#-running-ban-searcher)
 > - [🛠 Project Roadmap](#-project-roadmap)
 > - [🤝 Contributing](#-contributing)
 > - [📄 License](#-license)
