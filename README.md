@@ -280,7 +280,7 @@ This project is protected under the [AGPL-3.0](https://choosealicense.com/licens
 
 ## 👏 Acknowledgments
 
-- List any resources, contributors, inspiration, etc. here.
+- 105hua: Development of the WebUI.
 
 [**Return**](#-quick-links)
 
