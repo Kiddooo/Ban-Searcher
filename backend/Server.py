@@ -2,6 +2,7 @@ from fastapi import FastAPI, Body
 from pydantic import BaseModel
 from libs.Tokens import verify_base64
 import re
+import sqlite3
 
 app = FastAPI()
 
@@ -29,6 +30,21 @@ def generate_report(input: ReportInformation = Body(...)):
         return {
             "success": False,
             "error": "You have not provided a valid username."
+        }
+    # Check if token is valid with database.
+    connection = sqlite3.Connection("database.db")
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM users WHERE token = ?", (input.token))
+    rows = cursor.fetchall()
+    if len(rows) > 1:
+        return {
+            "success": False,
+            "message": "More than one user with same token."
+        }
+    if rows == 0:
+        return {
+            "success": False,
+            "message": "Token does not exist in our database."
         }
     # TODO Generate report.
     return {

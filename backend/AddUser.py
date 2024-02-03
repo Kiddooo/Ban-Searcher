@@ -30,8 +30,23 @@ rows = cursor.fetchall()
 if len(rows) >= 1:
     print("This username already exists in the database.")
     sys.exit(0)
-user_id = str(uuid.uuid4())
-user_token = generate_base64(32)
+
+id_exists = True
+while id_exists == True:
+    user_id = uuid.uuid4()
+    cursor.execute("SELECT * FROM users WHERE id = ?", (user_id))
+    rows = cursor.fetchall()
+    if len(rows) == 0:
+        id_exists = False
+
+token_exists = True
+while token_exists == True:
+    user_token = generate_base64(32)
+    cursor.execute("SELECT * FROM users WHERE token = ?", (user_token))
+    rows = cursor.fetchall()
+    if len(rows) == 0:
+        token_exists = False
+
 cursor.execute("INSERT INTO users VALUES (?, ?, ?)", (user_id, args.username, user_token))
 connection.commit()
 
