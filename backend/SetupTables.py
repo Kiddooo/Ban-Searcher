@@ -21,6 +21,6 @@ users = [
 for user in users:
     user_uuid = uuid.uuid4()
     user_token = generate_base64(32)
-    cursor.execute("INSERT INTO users VALUES (?, ?, ?)", str(user_uuid), user, user_token)
+    cursor.execute("INSERT INTO users VALUES (?, ?, ?)", (str(user_uuid), user, user_token))
 
 connection.commit()
