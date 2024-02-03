@@ -24,6 +24,12 @@ if username_regex.match(args.username) is None:
 
 connection = sqlite3.Connection("database.db")
 cursor = connection.cursor()
+
+cursor.execute("SELECT * FROM users WHERE owner = ?", (args.username))
+rows = cursor.fetchall()
+if len(rows) >= 1:
+    print("This username already exists in the database.")
+    sys.exit(0)
 user_id = str(uuid.uuid4())
 user_token = generate_base64(32)
 cursor.execute("INSERT INTO users VALUES (?, ?, ?)", (user_id, args.username, user_token))
