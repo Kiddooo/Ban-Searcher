@@ -8,7 +8,7 @@ from twisted.web.client import Agent, FileBodyProducer, readBody
 from twisted.web.http_headers import Headers
 
 
-class BanlistProjectSpiderMiddleware:
+class ScraperSpiderMiddleware:
     @classmethod
     def from_crawler(cls, crawler):
         """
@@ -45,7 +45,7 @@ class BanlistProjectSpiderMiddleware:
         spider.logger.info("Spider opened: %s" % spider.name)
 
 
-class BanlistProjectDownloaderMiddleware:
+class ScraperDownloaderMiddleware:
     @classmethod
     def from_crawler(cls, crawler):
         """

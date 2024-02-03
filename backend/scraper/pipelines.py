@@ -75,5 +75,6 @@ class BanPipeline:
         logger.info(
             f"{Fore.MAGENTA}{spider.name} | Found ban from source: {item.get('source')}{Style.RESET_ALL}"
         )
+        print(item)
         self.bans.append(item)
         return item

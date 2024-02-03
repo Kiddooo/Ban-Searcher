@@ -6,8 +6,8 @@ import scrapy
 import tldextract
 from colorama import Fore, Style
 
-from banlist_project.items import BanItem
-from utils import get_language, logger, translate
+from scraper.items import BanItem
+from backend.utils import get_language, logger, translate
 
 
 class CubevilleSpider(scrapy.Spider):

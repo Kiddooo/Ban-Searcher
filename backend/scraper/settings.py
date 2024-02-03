@@ -1,7 +1,17 @@
-BOT_NAME = "banlist_project"
+BOT_NAME = "scraper"
 
-SPIDER_MODULES = ["banlist_project.spiders"]
-NEWSPIDER_MODULE = "banlist_project.spiders"
+
+SPIDER_MODULES = ["scraper.spiders"]
+NEWSPIDER_MODULE = "scraper.spiders"
+
+def spider_closed_handler(spider, **kwargs):
+    # Set a flag indicating that the crawl is complete
+    spider.crawl_complete = True
+    
+custom_settings = {
+    'SPIDER_CLOSED': spider_closed_handler,
+    # ... other settings ...
+}
 
 LOG_ENABLED = False
 # LOG_LEVEL = 'DEBUG'
@@ -16,11 +26,11 @@ CONCURRENT_REQUESTS = 32
 REACTOR_THREADPOOL_MAXSIZE = 128
 
 DOWNLOADER_MIDDLEWARES = {
-    "banlist_project.middlewares.FlareSolverrMiddleware": 500,
+    "scraper.middlewares.FlareSolverrMiddleware": 500,
 }
 
 ITEM_PIPELINES = {
-    "banlist_project.pipelines.BanPipeline": 300,
+    "scraper.pipelines.BanPipeline": 300,
 }
 
 AUTOTHROTTLE_ENABLED = True
@@ -29,7 +39,7 @@ AUTOTHROTTLE_MAX_DELAY = 60
 DNSCACHE_ENABLED = True
 
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
-TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
+# TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
 
 

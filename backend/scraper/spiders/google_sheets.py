@@ -7,8 +7,8 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from twisted.internet.threads import deferToThread
 
-from banlist_project.items import BanItem
-from utils import calculate_timestamp, logger, parse_date
+from scraper.items import BanItem
+from backend.utils import calculate_timestamp, logger, parse_date
 
 
 class GoogleSheetsSpider(scrapy.Spider):

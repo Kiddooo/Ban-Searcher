@@ -1,11 +1,11 @@
-import random
+from secrets import choice
 
 allowedChars = [*"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"]
 
 def generate_base64(input_length):
     generated_string = ""
-    for i in range(input_length):
-        generated_string = generated_string + allowedChars[random.randint(0, (len(allowedChars) - 1))]
+    for _ in range(input_length):
+        generated_string += choice(allowedChars)
     return generated_string
 
 def verify_base64(input_string: str):

@@ -4,8 +4,8 @@ import tldextract
 from bs4 import BeautifulSoup, Comment
 from colorama import Fore, Style
 
-from banlist_project.items import BanItem
-from utils import get_language, logger, translate
+from scraper.items import BanItem
+from backend.utils import get_language, logger, translate
 
 # Constants for various strings used in the code
 DATE_FORMAT = "%b %d, %Y %I:%M:%S %p"

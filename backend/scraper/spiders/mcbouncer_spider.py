@@ -4,8 +4,8 @@ import tldextract
 from bs4 import BeautifulSoup
 from colorama import Fore, Style
 
-from banlist_project.items import BanItem
-from utils import calculate_timestamp, get_language, logger, parse_date, translate
+from scraper.items import BanItem
+from backend.utils import calculate_timestamp, get_language, logger, parse_date, translate
 
 BASE_URL = "https://mcbouncer.com/u/{}/bansFor"
 

@@ -7,10 +7,10 @@ from InquirerPy import prompt
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 
-from banlist_project.pipelines import BanPipeline
+from scraper.pipelines import BanPipeline
 from player_converter import Player, PlayerValidationError
-from player_report import PlayerReport
-from utils import logger
+from backend.player_report import PlayerReport
+from backend.utils import logger
 
 
 def get_user_input() -> Tuple[Optional[str], Optional[str], Optional[str]]:
