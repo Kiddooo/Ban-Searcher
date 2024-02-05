@@ -166,3 +166,4 @@ credentials.json
 test_players
 bedrock_uuid.txt
 backend/database.db
+backend/dump.rdb

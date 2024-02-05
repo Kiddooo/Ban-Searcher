@@ -4,15 +4,6 @@ BOT_NAME = "scraper"
 SPIDER_MODULES = ["scraper.spiders"]
 NEWSPIDER_MODULE = "scraper.spiders"
 
-def spider_closed_handler(spider, **kwargs):
-    # Set a flag indicating that the crawl is complete
-    spider.crawl_complete = True
-    
-custom_settings = {
-    'SPIDER_CLOSED': spider_closed_handler,
-    # ... other settings ...
-}
-
 LOG_ENABLED = False
 # LOG_LEVEL = 'DEBUG'
 RETRY_TIMES = 1
