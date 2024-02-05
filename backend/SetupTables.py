@@ -15,7 +15,8 @@ cursor.execute("CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY, owner TEXT
 # Add administrator users
 users = [
     "Demonstrations",
-    "105hua"
+    "105hua",
+    "MorbidKitty"
 ]
 
 for user in users:

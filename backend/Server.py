@@ -14,9 +14,24 @@ from rq import Queue
 from rq.job import Job
 import uuid
 
+from fastapi.middleware.cors import CORSMiddleware
+
 # setup()
 app = FastAPI()
 queue = Queue(connection=Redis())
+
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 @app.get("/")
 def root_route():
@@ -59,13 +74,17 @@ def run_crawler(username, uuid_dash, task_job_id):
     redis_conn.set(redis_key, serialized_results)
     return redis_key # Return the Redis key where the results are stored
 
-@app.get("/generate_report")
+@app.post("/generate_report")
 async def generate_report(input: ReportInformation = Body(...)):
     # Verify information.
     if input.token is None or input.token == "" or verify_base64(input.token) is False:
         return {"success": False, "error": "You have not provided a valid token." }
     if username_regex.match(input.username) is None:
         return {"success": False, "error": "You have not provided a valid username." }
+    try:
+        uuid.UUID(input.uuid_dash)
+    except ValueError:
+        return {"success": False, "error": "You have not provided a valid UUID."}
     # Check if token is valid with database.
     connection = sqlite3.Connection("database.db")
     cursor = connection.cursor()
@@ -73,7 +92,7 @@ async def generate_report(input: ReportInformation = Body(...)):
     rows = cursor.fetchall()
     if len(rows) > 1:
         return {"success": False, "error": "More than one user with same token." }
-    if rows == 0:
+    if len(rows) == 0:
         return {"success": False, "error": "Token does not exist in our database."}
     
     # Enqueue the job
@@ -82,7 +101,7 @@ async def generate_report(input: ReportInformation = Body(...)):
     return {"success": True, "data": task_job_id}
 
 
-@app.get("/check_report/{job_id}")
+@app.post("/check_report/{job_id}")
 async def check_report(job_id: str):
     redis_conn = Redis()
     job = Job.fetch(job_id, connection=redis_conn)
@@ -98,4 +117,4 @@ async def check_report(job_id: str):
         else:
             return {"success": False, "error": "Job was not successful."}
     else:
-        return {"success": False, "error": "Results are not available yet."}
+        return {"success": False, "message": "Results are not available yet."}
