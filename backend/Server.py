@@ -3,15 +3,20 @@ from pydantic import BaseModel
 from libs.Tokens import verify_base64
 import re
 import sqlite3
-from scrapy.crawler import CrawlerRunner
+from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 from scraper.pipelines import BanPipeline
 from player_report import PlayerReport
-from crochet import setup, run_in_reactor
+import json
+from redis import Redis
+import asyncio
+from rq import Queue
+from rq.job import Job
+import uuid
 
-
-setup()
+# setup()
 app = FastAPI()
+queue = Queue(connection=Redis())
 
 @app.get("/")
 def root_route():
@@ -26,19 +31,33 @@ class ReportInformation(BaseModel):
     username: str
     uuid_dash: str
     
-crawler_runner = CrawlerRunner(get_project_settings())  # Initialize the CrawlerRunner
-
-@run_in_reactor
-def run_crawler(input):
+def run_crawler(username, uuid_dash, task_job_id):
+    # Initialize the CrawlerRunner
+    crawler_runner = CrawlerProcess(get_project_settings())
+    # Run the spiders and store the results in the BanPipeline
     for spider_name in crawler_runner.spider_loader.list():
         crawler_runner.crawl(
             spider_name,
-            username=input.username,
-            player_uuid=input.uuid_dash.replace("-", ""),
-            player_uuid_dash=input.uuid_dash,
+            username=username,
+            player_uuid=uuid_dash.replace("-", ""),
+            player_uuid_dash=uuid_dash,
         )
-    return crawler_runner.join()  # Return the deferred from join, which fires when all crawls are done
-
+    # Start the crawling process
+    crawler_runner.start()
+    # Wait for the crawling to finish
+    crawler_runner.join()
+    # Get the results from the BanPipeline
+    ban_pipeline = BanPipeline()
+    results = ban_pipeline.get_bans()
+    # Convert each BanItem to a JSON-compatible dictionary
+    results_dict = [item.to_json() for item in results]
+    # Serialize the results to a JSON string
+    serialized_results = json.dumps(results_dict)
+    # Save the result to Redis
+    redis_conn = Redis()
+    redis_key = f"crawler_results:{task_job_id}"
+    redis_conn.set(redis_key, serialized_results)
+    return redis_key # Return the Redis key where the results are stored
 
 @app.get("/generate_report")
 async def generate_report(input: ReportInformation = Body(...)):
@@ -69,12 +88,26 @@ async def generate_report(input: ReportInformation = Body(...)):
             "message": "Token does not exist in our database."
         }
     
-    #TODO FIX | Currently can run once but any runs afterwards will have combined ban lists
-    run_crawler(input).wait(timeout=None)
-    
-    player_report = PlayerReport(
-        input.username,
-        input.uuid_dash,
-        sorted(BanPipeline.bans, key=lambda x: x["source"]),
-    )
-    return player_report.generate_report()
+    # Enqueue the job
+    task_job_id = str(uuid.uuid4())
+    queue.enqueue(run_crawler, username=input.username, uuid_dash=input.uuid_dash, task_job_id=task_job_id, job_id=task_job_id, result_ttl=600)
+    return {"status": "sucessful", "job_id": task_job_id}
+
+
+@app.get("/check_report/{job_id}")
+async def check_report(job_id: str):
+    redis_conn = Redis()
+    job = Job.fetch(job_id, connection=redis_conn)
+    if job.is_finished:
+        result = job.latest_result()
+        if result.type == result.Type.SUCCESSFUL:
+            report_data = json.loads((redis_conn.get(job.return_value()).decode("utf-8")))
+            player_report = PlayerReport(
+                job.kwargs.get("username"),
+                job.kwargs.get("uuid_dash"),
+                sorted(report_data, key=lambda x: x["source"]))
+            return player_report.generate_report()
+        else:
+            return {"success": False, "message": "Job was not successful", "result": str(result)}
+    else:
+        return {"success": False, "message": "Results not available yet"}

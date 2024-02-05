@@ -78,3 +78,6 @@ class BanPipeline:
         print(item)
         self.bans.append(item)
         return item
+
+    def get_bans(self):
+        return self.bans
