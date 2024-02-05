@@ -63,35 +63,23 @@ def run_crawler(username, uuid_dash, task_job_id):
 async def generate_report(input: ReportInformation = Body(...)):
     # Verify information.
     if input.token is None or input.token == "" or verify_base64(input.token) is False:
-        return {
-            "success": False,
-            "error": "You have not provided a valid token."
-        }
+        return {"success": False, "error": "You have not provided a valid token." }
     if username_regex.match(input.username) is None:
-        return {
-            "success": False,
-            "error": "You have not provided a valid username."
-        }
+        return {"success": False, "error": "You have not provided a valid username." }
     # Check if token is valid with database.
     connection = sqlite3.Connection("database.db")
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM users WHERE token = ?", (input.token, ))
     rows = cursor.fetchall()
     if len(rows) > 1:
-        return {
-            "success": False,
-            "message": "More than one user with same token."
-        }
+        return {"success": False, "error": "More than one user with same token." }
     if rows == 0:
-        return {
-            "success": False,
-            "message": "Token does not exist in our database."
-        }
+        return {"success": False, "error": "Token does not exist in our database."}
     
     # Enqueue the job
     task_job_id = str(uuid.uuid4())
     queue.enqueue(run_crawler, username=input.username, uuid_dash=input.uuid_dash, task_job_id=task_job_id, job_id=task_job_id, result_ttl=600)
-    return {"status": "sucessful", "job_id": task_job_id}
+    return {"success": True, "data": task_job_id}
 
 
 @app.get("/check_report/{job_id}")
@@ -106,8 +94,8 @@ async def check_report(job_id: str):
                 job.kwargs.get("username"),
                 job.kwargs.get("uuid_dash"),
                 sorted(report_data, key=lambda x: x["source"]))
-            return player_report.generate_report()
+            return {"success": True, "data": player_report.generate_report()}
         else:
-            return {"success": False, "message": "Job was not successful", "result": str(result)}
+            return {"success": False, "error": "Job was not successful"}
     else:
-        return {"success": False, "message": "Results not available yet"}
+        return {"success": False, "error": "Results not available yet"}
