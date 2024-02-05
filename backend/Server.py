@@ -96,6 +96,6 @@ async def check_report(job_id: str):
                 sorted(report_data, key=lambda x: x["source"]))
             return {"success": True, "data": player_report.generate_report()}
         else:
-            return {"success": False, "error": "Job was not successful"}
+            return {"success": False, "error": "Job was not successful."}
     else:
-        return {"success": False, "error": "Results not available yet"}
+        return {"success": False, "error": "Results are not available yet."}
