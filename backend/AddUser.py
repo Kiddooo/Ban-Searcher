@@ -30,7 +30,7 @@ if len(rows) >= 1:
 
 id_exists = True
 while id_exists == True:
-    user_id = uuid.uuid4()
+    user_id = str(uuid.uuid4())
     cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
     rows = cursor.fetchall()
     if len(rows) == 0:
