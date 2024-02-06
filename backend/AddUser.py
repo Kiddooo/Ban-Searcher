@@ -1,6 +1,3 @@
-import os
-print(os.getcwd())
-
 import argparse
 import re
 import sys
@@ -25,7 +22,7 @@ if username_regex.match(args.username) is None:
 connection = sqlite3.Connection("database.db")
 cursor = connection.cursor()
 
-cursor.execute("SELECT * FROM users WHERE owner = ?", (args.username))
+cursor.execute("SELECT * FROM users WHERE owner = ?", (args.username,))
 rows = cursor.fetchall()
 if len(rows) >= 1:
     print("This username already exists in the database.")
@@ -34,7 +31,7 @@ if len(rows) >= 1:
 id_exists = True
 while id_exists == True:
     user_id = uuid.uuid4()
-    cursor.execute("SELECT * FROM users WHERE id = ?", (user_id))
+    cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
     rows = cursor.fetchall()
     if len(rows) == 0:
         id_exists = False
@@ -42,7 +39,7 @@ while id_exists == True:
 token_exists = True
 while token_exists == True:
     user_token = generate_base64(32)
-    cursor.execute("SELECT * FROM users WHERE token = ?", (user_token))
+    cursor.execute("SELECT * FROM users WHERE token = ?", (user_token,))
     rows = cursor.fetchall()
     if len(rows) == 0:
         token_exists = False
