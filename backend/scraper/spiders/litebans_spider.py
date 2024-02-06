@@ -82,7 +82,7 @@ class LiteBansSpider(scrapy.Spider):
             "https://dankprison.com/bans/history.php?uuid=",
             "https://differentcraft.net/bans/history.php?uuid=",
             "https://hearthcraft.net/bans/history.php?uuid=",
-            "https://hydrapvp.it/bans/history.php?uuid=",
+            # "https://hydrapvp.it/bans/history.php?uuid=",
             # "https://infracciones.acropolis-mc.com/history.php?uuid=",
             "https://justleader.net/tresty/history/",
             "https://litebans.shiuki.eu.org/minersleague/punishments/history.php?uuid=",

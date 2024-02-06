@@ -9,10 +9,11 @@ from scraper.pipelines import BanPipeline
 from player_report import PlayerReport
 import json
 from redis import Redis
-import asyncio
+import requests
 from rq import Queue
 from rq.job import Job
 import uuid
+import logging
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -51,12 +52,20 @@ def run_crawler(username, uuid_dash, task_job_id):
     crawler_runner = CrawlerProcess(get_project_settings())
     # Run the spiders and store the results in the BanPipeline
     for spider_name in crawler_runner.spider_loader.list():
+        if "-" in uuid_dash:
+            player_uuid = uuid_dash.replace("-")
+            player_uuid_dash = uuid_dash
+        else:
+            player_uuid = uuid_dash
+            player_uuid_dash = str(uuid.UUID(uuid_dash))
+        
         crawler_runner.crawl(
             spider_name,
             username=username,
-            player_uuid=uuid_dash.replace("-", ""),
-            player_uuid_dash=uuid_dash,
+            player_uuid=player_uuid,
+            player_uuid_dash=player_uuid_dash
         )
+
     # Start the crawling process
     crawler_runner.start()
     # Wait for the crawling to finish
@@ -82,7 +91,15 @@ async def generate_report(input: ReportInformation = Body(...)):
     if username_regex.match(input.username) is None:
         return {"success": False, "error": "You have not provided a valid username." }
     try:
-        uuid.UUID(input.uuid_dash)
+        player_uuid = uuid.UUID(input.uuid_dash)
+        url = f"https://api.mojang.com/users/profiles/minecraft/{input.username}"
+        response = requests.get(url)
+        if response.status_code !=  200:
+            return {"success": False, "error": "Username not found."}
+        mojang_uuid = response.json().get('id')
+        if mojang_uuid != str(player_uuid).replace("-", ""):
+            return {"success": False, "error": "UUID and Username do not match."}
+
     except ValueError:
         return {"success": False, "error": "You have not provided a valid UUID."}
     # Check if token is valid with database.
