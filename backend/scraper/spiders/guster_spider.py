@@ -6,7 +6,13 @@ import tldextract
 from colorama import Fore, Style
 
 from scraper.items import BanItem
-from backend.utils import calculate_timestamp, get_language, logger, parse_date, translate
+from backend.utils import (
+    calculate_timestamp,
+    get_language,
+    logger,
+    parse_date,
+    translate,
+)
 
 # Constants
 BASE_URL = "https://bans.guster.ro/api.php?type=player&player={}&page={}&perpage=25"

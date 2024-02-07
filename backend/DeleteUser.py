@@ -8,12 +8,14 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--uuid")
 args = parser.parse_args()
 
+
 def is_valid_uuid(input_uuid):
     try:
         uuid.UUID(input_uuid, version=4)
         return True
     except ValueError:
         return False
+
 
 if is_valid_uuid(args.uuid) is False:
     print("The provided username is not valid.")

@@ -4,7 +4,13 @@ from bs4 import BeautifulSoup
 from colorama import Fore, Style
 
 from scraper.items import BanItem
-from backend.utils import calculate_timestamp, get_language, logger, parse_date, translate
+from backend.utils import (
+    calculate_timestamp,
+    get_language,
+    logger,
+    parse_date,
+    translate,
+)
 
 BAN_STATUS_LENGTH_NOT_BANNED = 2
 BAN_STATUS_LENGTH_BANNED = 3

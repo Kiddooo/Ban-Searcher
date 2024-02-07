@@ -21,32 +21,31 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 queue = Queue(connection=Redis())
 
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000"
-]
+origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
+
 
 @app.get("/")
 def root_route():
-    return {
-        "message": "The server is online!"
-    }
+    return {"message": "The server is online!"}
+
 
 username_regex = re.compile(r"^[a-zA-Z0-9_]{3,16}$")
+
 
 class ReportInformation(BaseModel):
     token: str
     username: str
     uuid_dash: str
-    
+
+
 def run_crawler(username, uuid_dash, task_job_id):
     # Initialize the CrawlerRunner
     crawler_runner = CrawlerProcess(get_project_settings())
@@ -58,12 +57,12 @@ def run_crawler(username, uuid_dash, task_job_id):
         else:
             player_uuid = uuid_dash
             player_uuid_dash = str(uuid.UUID(uuid_dash))
-        
+
         crawler_runner.crawl(
             spider_name,
             username=username,
             player_uuid=player_uuid,
-            player_uuid_dash=player_uuid_dash
+            player_uuid_dash=player_uuid_dash,
         )
 
     # Start the crawling process
@@ -81,22 +80,23 @@ def run_crawler(username, uuid_dash, task_job_id):
     redis_conn = Redis()
     redis_key = f"crawler_results:{task_job_id}"
     redis_conn.set(redis_key, serialized_results)
-    return redis_key # Return the Redis key where the results are stored
+    return redis_key  # Return the Redis key where the results are stored
+
 
 @app.post("/generate_report")
 async def generate_report(input: ReportInformation = Body(...)):
     # Verify information.
     if input.token is None or input.token == "" or verify_base64(input.token) is False:
-        return {"success": False, "error": "You have not provided a valid token." }
+        return {"success": False, "error": "You have not provided a valid token."}
     if username_regex.match(input.username) is None:
-        return {"success": False, "error": "You have not provided a valid username." }
+        return {"success": False, "error": "You have not provided a valid username."}
     try:
         player_uuid = uuid.UUID(input.uuid_dash)
         url = f"https://api.mojang.com/users/profiles/minecraft/{input.username}"
         response = requests.get(url)
-        if response.status_code !=  200:
+        if response.status_code != 200:
             return {"success": False, "error": "Username not found."}
-        mojang_uuid = response.json().get('id')
+        mojang_uuid = response.json().get("id")
         if mojang_uuid != str(player_uuid).replace("-", ""):
             return {"success": False, "error": "UUID and Username do not match."}
 
@@ -105,16 +105,23 @@ async def generate_report(input: ReportInformation = Body(...)):
     # Check if token is valid with database.
     connection = sqlite3.Connection("database.db")
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM users WHERE token = ?", (input.token, ))
+    cursor.execute("SELECT * FROM users WHERE token = ?", (input.token,))
     rows = cursor.fetchall()
     if len(rows) > 1:
-        return {"success": False, "error": "More than one user with same token." }
+        return {"success": False, "error": "More than one user with same token."}
     if len(rows) == 0:
         return {"success": False, "error": "Token does not exist in our database."}
-    
+
     # Enqueue the job
     task_job_id = str(uuid.uuid4())
-    queue.enqueue(run_crawler, username=input.username, uuid_dash=input.uuid_dash, task_job_id=task_job_id, job_id=task_job_id, result_ttl=600)
+    queue.enqueue(
+        run_crawler,
+        username=input.username,
+        uuid_dash=input.uuid_dash,
+        task_job_id=task_job_id,
+        job_id=task_job_id,
+        result_ttl=600,
+    )
     return {"success": True, "data": task_job_id}
 
 
@@ -125,11 +132,14 @@ async def check_report(job_id: str):
     if job.is_finished:
         result = job.latest_result()
         if result.type == result.Type.SUCCESSFUL:
-            report_data = json.loads((redis_conn.get(job.return_value()).decode("utf-8")))
+            report_data = json.loads(
+                (redis_conn.get(job.return_value()).decode("utf-8"))
+            )
             player_report = PlayerReport(
                 job.kwargs.get("username"),
                 job.kwargs.get("uuid_dash"),
-                sorted(report_data, key=lambda x: x["source"]))
+                sorted(report_data, key=lambda x: x["source"]),
+            )
             return {"success": True, "data": player_report.generate_report()}
         else:
             return {"success": False, "error": "Job was not successful."}

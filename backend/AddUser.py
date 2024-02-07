@@ -44,7 +44,9 @@ while token_exists == True:
     if len(rows) == 0:
         token_exists = False
 
-cursor.execute("INSERT INTO users VALUES (?, ?, ?)", (user_id, args.username, user_token))
+cursor.execute(
+    "INSERT INTO users VALUES (?, ?, ?)", (user_id, args.username, user_token)
+)
 connection.commit()
 
 print(f"{args.username} has been added as a user.")
