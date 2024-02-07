@@ -20,7 +20,7 @@ class ReportGenerationError(Exception):
 
 
 class PlayerReport:
-    def __init__(self, player_username, player_uuid, bans):
+    def __init__(self, player_username: str, player_uuid: str, bans: list):
         self.player_username = player_username
         self.player_uuid = player_uuid
         self.bans = bans
@@ -42,7 +42,6 @@ class PlayerReport:
             player_report.generate_report()
         """
         try:
-            print(self.bans)
             return self._construct_report_dict()
         except Exception as e:
             raise ReportGenerationError(

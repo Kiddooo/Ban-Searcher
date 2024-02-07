@@ -1,16 +1,17 @@
 import sqlite3
 import uuid
+
 from libs.Tokens import generate_base64
 
 # Define connection and cursor.
-connection = sqlite3.Connection("database.db")
-cursor = connection.cursor()
+users_connection = sqlite3.Connection("databases/users.db")
+users_cursor = users_connection.cursor()
 
 # Drop all tables.
-cursor.execute("DROP TABLE IF EXISTS users")
+users_cursor.execute("DROP TABLE IF EXISTS users")
 
 # Create users table.
-cursor.execute(
+users_cursor.execute(
     "CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY, owner TEXT NOT NULL, token TEXT NOT NULL)"
 )
 
@@ -20,8 +21,16 @@ users = ["Demonstrations", "105hua", "MorbidKitty"]
 for user in users:
     user_uuid = uuid.uuid4()
     user_token = generate_base64(32)
-    cursor.execute(
+    users_cursor.execute(
         "INSERT INTO users VALUES (?, ?, ?)", (str(user_uuid), user, user_token)
     )
 
-connection.commit()
+users_connection.commit()
+
+cache_connection = sqlite3.Connection("databases/cache.db")
+cache_cursor = cache_connection.cursor()
+cache_cursor.execute("DROP TABLE IF EXISTS cache")
+cache_cursor.execute(
+    "CREATE TABLE IF NOT EXISTS cache(job_id TEXT PRIMARY KEY, ban_data TEXT NOT NULL, timestamp INTEGER NOT NULL, player_uuid TEXT NOT NULL)"
+)
+cache_connection.commit()

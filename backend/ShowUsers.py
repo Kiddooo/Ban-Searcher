@@ -1,9 +1,10 @@
 # Run this to print all users to console.
 
 import sqlite3
+
 from prettytable import PrettyTable
 
-connection = sqlite3.Connection("database.db")
+connection = sqlite3.Connection("databases/users.db")
 cursor = connection.cursor()
 cursor.execute("SELECT * FROM users")
 rows = cursor.fetchall()

@@ -1,31 +1,34 @@
-from fastapi import FastAPI, Body
-from pydantic import BaseModel
-from libs.Tokens import verify_base64
+import json
 import re
 import sqlite3
-from scrapy.crawler import CrawlerProcess
-from scrapy.utils.project import get_project_settings
-from scraper.pipelines import BanPipeline
-from player_report import PlayerReport
-import json
-from redis import Redis
+import uuid
+from datetime import datetime
+
 import requests
+from fastapi import Body, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from redis import Redis
 from rq import Queue
 from rq.job import Job
-import uuid
-import logging
-
-from fastapi.middleware.cors import CORSMiddleware
+from scrapy.crawler import CrawlerProcess
+from scrapy.utils.project import get_project_settings
+from datetime import timedelta
+from libs.Tokens import verify_base64
+from player_report import PlayerReport
+from scraper.pipelines import BanPipeline
 
 # setup()
 app = FastAPI()
 queue = Queue(connection=Redis())
 
+username_regex = re.compile(r"^[a-zA-Z0-9_]{3,16}$")
+
 origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,9 +38,6 @@ app.add_middleware(
 @app.get("/")
 def root_route():
     return {"message": "The server is online!"}
-
-
-username_regex = re.compile(r"^[a-zA-Z0-9_]{3,16}$")
 
 
 class ReportInformation(BaseModel):
@@ -52,7 +52,7 @@ def run_crawler(username, uuid_dash, task_job_id):
     # Run the spiders and store the results in the BanPipeline
     for spider_name in crawler_runner.spider_loader.list():
         if "-" in uuid_dash:
-            player_uuid = uuid_dash.replace("-")
+            player_uuid = uuid_dash.replace("-", "")
             player_uuid_dash = uuid_dash
         else:
             player_uuid = uuid_dash
@@ -102,8 +102,9 @@ async def generate_report(input: ReportInformation = Body(...)):
 
     except ValueError:
         return {"success": False, "error": "You have not provided a valid UUID."}
+
     # Check if token is valid with database.
-    connection = sqlite3.Connection("database.db")
+    connection = sqlite3.Connection("databases/users.db")
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM users WHERE token = ?", (input.token,))
     rows = cursor.fetchall()
@@ -112,36 +113,73 @@ async def generate_report(input: ReportInformation = Body(...)):
     if len(rows) == 0:
         return {"success": False, "error": "Token does not exist in our database."}
 
-    # Enqueue the job
-    task_job_id = str(uuid.uuid4())
-    queue.enqueue(
-        run_crawler,
-        username=input.username,
-        uuid_dash=input.uuid_dash,
-        task_job_id=task_job_id,
-        job_id=task_job_id,
-        result_ttl=600,
-    )
-    return {"success": True, "data": task_job_id}
+    # Check if the cached data is less than   1 month old
+    one_month_ago = int((datetime.now() - timedelta(days=30)).timestamp())
+    cache_connection = sqlite3.Connection("databases/cache.db")
+    cache_cursor = cache_connection.cursor()
+    user_exist = cache_cursor.execute(
+        "SELECT * FROM cache WHERE player_uuid = ?", (input.uuid_dash.replace("-", ""),)
+    ).fetchone()
+
+    if user_exist and user_exist[2] >= one_month_ago:
+        # Data is less than 1 month old, return the job_id from the cache
+        return {"success": True, "data": user_exist[0]}
+    else:
+        # Data is older than 1 month, enqueue a new job
+        task_job_id = str(uuid.uuid4())
+        queue.enqueue(
+            run_crawler,
+            username=input.username,
+            uuid_dash=input.uuid_dash,
+            task_job_id=task_job_id,
+            job_id=task_job_id,
+            result_ttl=600,
+        )
+        return {"success": True, "data": task_job_id}
 
 
 @app.post("/check_report/{job_id}")
 async def check_report(job_id: str):
     redis_conn = Redis()
     job = Job.fetch(job_id, connection=redis_conn)
-    if job.is_finished:
-        result = job.latest_result()
-        if result.type == result.Type.SUCCESSFUL:
-            report_data = json.loads(
-                (redis_conn.get(job.return_value()).decode("utf-8"))
-            )
-            player_report = PlayerReport(
-                job.kwargs.get("username"),
-                job.kwargs.get("uuid_dash"),
-                sorted(report_data, key=lambda x: x["source"]),
-            )
-            return {"success": True, "data": player_report.generate_report()}
-        else:
-            return {"success": False, "error": "Job was not successful."}
-    else:
+    if not job.is_finished:
         return {"success": False, "message": "Results are not available yet."}
+
+    result = job.latest_result()
+    if not result.type == result.Type.SUCCESSFUL:
+        return {"success": False, "error": "Job was not successful."}
+
+    report_data = json.loads((redis_conn.get(job.return_value()).decode("utf-8")))
+    player_report = PlayerReport(
+        job.kwargs.get("username"),
+        job.kwargs.get("uuid_dash"),
+        sorted(report_data, key=lambda x: x["source"]),
+    )
+
+    # Serialize the report data to a JSON string
+    report_json = json.dumps(player_report.generate_report())
+
+    # Check if the job_id exists in the cache
+    cache_connection = sqlite3.Connection("databases/cache.db")
+    cache_cursor = cache_connection.cursor()
+    cache_cursor.execute("SELECT * FROM cache WHERE job_id = ?", (job_id,))
+    job_exists = cache_cursor.fetchone()
+
+    if job_exists:
+        # If the job_id exists, return the existing data
+        return {"success": True, "data": json.loads(job_exists[1])}
+    else:
+        # If the job_id does not exist, insert new data
+        cache_cursor.execute(
+            "INSERT INTO cache (job_id, ban_data, timestamp, player_uuid) VALUES (?, ?, ?, ?)",
+            (
+                job_id,
+                report_json,
+                int(datetime.now().timestamp()),
+                job.kwargs.get("uuid_dash").replace("-", ""),
+            ),
+        )
+        cache_connection.commit()
+        print(f"Job: {job_id} - UUID: {job.kwargs.get('uuid_dash')} added to cache")
+
+        return {"success": True, "data": player_report.generate_report()}

@@ -1,7 +1,8 @@
 import argparse
-import uuid
-import sys
 import sqlite3
+import sys
+import uuid
+
 from libs.Tokens import generate_base64
 
 parser = argparse.ArgumentParser()

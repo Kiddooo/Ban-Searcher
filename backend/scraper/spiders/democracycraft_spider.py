@@ -6,8 +6,8 @@ from bs4 import BeautifulSoup
 from colorama import Fore, Style
 from scrapy import Request, Spider
 
-from scraper.items import BanItem
 from backend.utils import get_language, logger, translate
+from scraper.items import BanItem
 
 
 class DemocracycraftSpider(Spider):

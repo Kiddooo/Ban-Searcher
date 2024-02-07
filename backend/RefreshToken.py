@@ -1,7 +1,8 @@
 import argparse
 import re
-import sys
 import sqlite3
+import sys
+
 from libs.Tokens import generate_base64
 
 parser = argparse.ArgumentParser()

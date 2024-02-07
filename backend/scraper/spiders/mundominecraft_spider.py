@@ -5,8 +5,8 @@ import scrapy
 import tldextract
 from colorama import Fore, Style
 
-from scraper.items import BanItem
 from backend.utils import get_language, logger, translate
+from scraper.items import BanItem
 
 # Constants for repeated strings
 PLAYER_BANS = "playerBans"

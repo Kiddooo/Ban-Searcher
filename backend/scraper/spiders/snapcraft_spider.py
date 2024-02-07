@@ -3,7 +3,6 @@ import tldextract
 from bs4 import BeautifulSoup
 from colorama import Fore, Style
 
-from scraper.items import BanItem
 from backend.utils import (
     calculate_timestamp,
     get_language,
@@ -11,6 +10,7 @@ from backend.utils import (
     parse_date,
     translate,
 )
+from scraper.items import BanItem
 
 
 class SnapcraftSpider(scrapy.Spider):

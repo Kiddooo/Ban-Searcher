@@ -4,7 +4,6 @@ import scrapy
 import tldextract
 from colorama import Fore, Style
 
-from scraper.items import BanItem
 from backend.utils import (
     calculate_timestamp,
     get_language,
@@ -12,6 +11,7 @@ from backend.utils import (
     parse_date,
     translate,
 )
+from scraper.items import BanItem
 
 # Constants for repeated string values
 AT = "at"

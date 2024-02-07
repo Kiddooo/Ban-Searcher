@@ -1,5 +1,6 @@
-from colorama import Fore, Style
 import logging
+
+from colorama import Fore, Style
 
 
 class BanPipeline:

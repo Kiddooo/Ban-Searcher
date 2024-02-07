@@ -2,8 +2,8 @@ import scrapy
 import tldextract
 from colorama import Fore, Style
 
-from scraper.items import BanItem
 from backend.utils import get_language, logger, translate
+from scraper.items import BanItem
 
 # Constants
 URL_TEMPLATE = "https://minecraftonline.com/cgi-bin/getplayerinfo?"
