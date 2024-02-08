@@ -18,10 +18,8 @@ from libs.Tokens import verify_base64
 from player_report import PlayerReport
 from scraper.pipelines import BanPipeline
 
-# setup()
 app = FastAPI()
 queue = Queue(connection=Redis())
-
 username_regex = re.compile(r"^[a-zA-Z0-9_]{3,16}$")
 
 origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
@@ -180,6 +178,5 @@ async def check_report(job_id: str):
             ),
         )
         cache_connection.commit()
-        print(f"Job: {job_id} - UUID: {job.kwargs.get('uuid_dash')} added to cache")
-
-        return {"success": True, "data": player_report.generate_report()}
+        print(f"Job: {job_id} - UUID: {job.kwargs.get('uuid_dash')} added to cache")        
+        return {"success": True, "data": report_json}

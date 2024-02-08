@@ -167,3 +167,5 @@ test_players
 bedrock_uuid.txt
 backend/database.db
 backend/dump.rdb
+backend/databases/cache.db
+backend/databases/users.db
