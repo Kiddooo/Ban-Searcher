@@ -179,4 +179,4 @@ async def check_report(job_id: str):
         )
         cache_connection.commit()
         print(f"Job: {job_id} - UUID: {job.kwargs.get('uuid_dash')} added to cache")        
-        return {"success": True, "data": report_json}
+        return {"success": True, "data": player_report.generate_report()}
