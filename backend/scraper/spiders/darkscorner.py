@@ -44,7 +44,6 @@ class DarksCornerSpider(scrapy.Spider):
             for row in table.xpath(".//tr")[1:]:
                 columns = row.xpath(".//td")[1:]
                 ban_reason = columns[1].xpath("text()").get()
-                print(columns[3].xpath("text()").get().lower().strip())
                 yield BanItem(
                     {
                         "source": tldextract.extract(response.url).domain,
