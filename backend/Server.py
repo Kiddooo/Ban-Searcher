@@ -48,20 +48,25 @@ def run_crawler(username, uuid_dash, task_job_id):
     # Initialize the CrawlerRunner
     crawler_runner = CrawlerProcess(get_project_settings())
     # Run the spiders and store the results in the BanPipeline
+    blacklisted_sources = ["DemocracycraftSpider"]
     for spider_name in crawler_runner.spider_loader.list():
-        if "-" in uuid_dash:
-            player_uuid = uuid_dash.replace("-", "")
-            player_uuid_dash = uuid_dash
+        if spider_name in blacklisted_sources:
+            print(f"Skipping {spider_name} - Blacklisted")
         else:
-            player_uuid = uuid_dash
-            player_uuid_dash = str(uuid.UUID(uuid_dash))
+            if "-" in uuid_dash:
+                player_uuid = uuid_dash.replace("-", "")
+                player_uuid_dash = uuid_dash
+            else:
+                player_uuid = uuid_dash
+                player_uuid_dash = str(uuid.UUID(uuid_dash))
 
-        crawler_runner.crawl(
-            spider_name,
-            username=username,
-            player_uuid=player_uuid,
-            player_uuid_dash=player_uuid_dash,
-        )
+            # if spider_name == "SyuuSpider":
+            crawler_runner.crawl(
+                spider_name,
+                username=username,
+                player_uuid=player_uuid,
+                player_uuid_dash=player_uuid_dash,
+            )
 
     # Start the crawling process
     crawler_runner.start()
@@ -118,6 +123,9 @@ async def generate_report(input: ReportInformation = Body(...)):
     user_exist = cache_cursor.execute(
         "SELECT * FROM cache WHERE player_uuid = ?", (input.uuid_dash.replace("-", ""),)
     ).fetchone()
+
+    # Used for testing new sources bypassing the cache
+    # user_exist = cache_cursor.execute("SELECT * FROM cache WHERE player_uuid = ?", ("test",)).fetchone()
 
     if user_exist and user_exist[2] >= one_month_ago:
         # Data is less than 1 month old, return the job_id from the cache
@@ -178,5 +186,5 @@ async def check_report(job_id: str):
             ),
         )
         cache_connection.commit()
-        print(f"Job: {job_id} - UUID: {job.kwargs.get('uuid_dash')} added to cache")        
+        print(f"Job: {job_id} - UUID: {job.kwargs.get('uuid_dash')} added to cache")
         return {"success": True, "data": player_report.generate_report()}

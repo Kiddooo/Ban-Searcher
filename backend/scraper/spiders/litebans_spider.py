@@ -52,7 +52,7 @@ class LiteBansSpider(scrapy.Spider):
         """
         urls = [
             "http://diemeesmcbans.nl/bans/history.php?uuid=",
-            "http://prestigebans.xyz/history.php?uuid=",
+            # "http://prestigebans.xyz/history.php?uuid=",
             "http://www.dodedge.com/bans/history.php?uuid=",
             "http://www.pokerevolution.es/bans/history.php?uuid=",
             "https://advanciuspunishments.website/history.php?uuid=",
@@ -116,6 +116,15 @@ class LiteBansSpider(scrapy.Spider):
             "https://www.paladia.net/history.php?uuid=",
             "https://www.roxbot.com/bans/history.php?uuid=",
             "https://www.staxified.net/litebans/history.php?uuid=",
+            "https://civwars.net/bans/history.php?uuid=",
+            "https://www.demonicaether.com/bans/history.php?uuid=",
+            "https://bans.bloomnetwork.net/history.php?uuid=",
+            "http://hellcraftmc.pl/history.php?uuid=",
+            "http://bohnengang.com/history.php?uuid=",
+            "https://bans.femboysmp.eu/history/",
+            "https://bans.raimu.space/history.php?uuid=",
+            "https://mc.nopixel.pl/litebans/history.php?uuid=",
+            "https://www.vestlandetmc.no/bans/history.php?uuid=",
         ]
         for url in urls:
             logger.info(
@@ -134,6 +143,9 @@ class LiteBansSpider(scrapy.Spider):
             "https://nytro.co/bans/history.php?uuid=",
             "https://www.pickaxemania.com/playerstatus/history.php?uuid=",
             "https://opblocks.com/bans/history.php?uuid=",
+            "https://www.craftersland.net/infbans/history.php?uuid=",
+            "https://bans.aliquam.org/history.php?uuid=",
+            "https://www.familymc.xyz/bans/history.php?uuid=",
         ]
         for url in urls2:
             url = url + self.player_uuid_dash

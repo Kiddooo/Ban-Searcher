@@ -5,7 +5,7 @@ SPIDER_MODULES = ["scraper.spiders"]
 NEWSPIDER_MODULE = "scraper.spiders"
 
 LOG_ENABLED = False
-# LOG_LEVEL = 'DEBUG'
+LOG_LEVEL = "DEBUG"
 RETRY_TIMES = 1
 DOWNLOAD_TIMEOUT = 30
 

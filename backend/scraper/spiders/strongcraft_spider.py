@@ -48,7 +48,7 @@ class StrongcraftSpider(scrapy.Spider):
         Returns:
             A generator of scrapy.Request objects for each player profile URL.
         """
-        url = f"https://www.strongcraft.org/players/{self.player_username}/"
+        url = f"https://www.strongcraft.org/players/{self.player_uuid}/"
         logger.info(
             f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
         )
