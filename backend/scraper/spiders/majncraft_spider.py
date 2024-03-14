@@ -99,12 +99,16 @@ class MajncraftSpider(scrapy.Spider):
             {
                 "source": tldextract.extract(response.url).domain,
                 "url": response.url,
-                "reason": translate(ban_reason)
-                if get_language(ban_reason) != "en"
-                else ban_reason,
+                "reason": (
+                    translate(ban_reason)
+                    if get_language(ban_reason) != "en"
+                    else ban_reason
+                ),
                 "date": int(dateparser.parse(ban_date).timestamp()),
-                "expires": PERMANENT
-                if expires == NEVER
-                else int(dateparser.parse(expires).timestamp()),
+                "expires": (
+                    PERMANENT
+                    if expires == NEVER
+                    else int(dateparser.parse(expires).timestamp())
+                ),
             }
         )

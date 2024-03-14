@@ -85,12 +85,16 @@ class JohnyMuffinSpider(scrapy.Spider):
                         {
                             "source": tldextract.extract(response.url).domain,
                             "url": response.url,
-                            "reason": translate(ban_reason)
-                            if get_language(ban_reason) != "en"
-                            else ban_reason,
+                            "reason": (
+                                translate(ban_reason)
+                                if get_language(ban_reason) != "en"
+                                else ban_reason
+                            ),
                             "date": "N/A",
-                            "expires": PERMANENT_BAN_TEXT
-                            if PERMANENT_BAN_TEXT in columns[3].text
-                            else int(dateparser.parse(columns[3].text).timestamp()),
+                            "expires": (
+                                PERMANENT_BAN_TEXT
+                                if PERMANENT_BAN_TEXT in columns[3].text
+                                else int(dateparser.parse(columns[3].text).timestamp())
+                            ),
                         }
                     )

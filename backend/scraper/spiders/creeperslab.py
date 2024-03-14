@@ -45,14 +45,20 @@ class CreepersLabSpider(scrapy.Spider):
                     {
                         "source": tldextract.extract(response.url).domain,
                         "url": "https://www.creeperslab.net/wall_of_shame.php",
-                        "reason": translate(json_ban["reason"])
-                        if get_language(json_ban["reason"]) != "en"
-                        else json_ban["reason"],
-                        "date": "N/A"
-                        if not json_ban["begin"]
-                        else int(dateparser.parse(json_ban["begin"]).timestamp()),
-                        "expires": "Permanent"
-                        if json_ban["end"] == None
-                        else int(dateparser.parse(json_ban["end"]).timestamp()),
+                        "reason": (
+                            translate(json_ban["reason"])
+                            if get_language(json_ban["reason"]) != "en"
+                            else json_ban["reason"]
+                        ),
+                        "date": (
+                            "N/A"
+                            if not json_ban["begin"]
+                            else int(dateparser.parse(json_ban["begin"]).timestamp())
+                        ),
+                        "expires": (
+                            "Permanent"
+                            if json_ban["end"] == None
+                            else int(dateparser.parse(json_ban["end"]).timestamp())
+                        ),
                     }
                 )

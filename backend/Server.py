@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime
 
 import requests
+from utils import get_player_username, get_player_uuid
 from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -21,6 +22,9 @@ from scraper.pipelines import BanPipeline
 app = FastAPI()
 queue = Queue(connection=Redis())
 username_regex = re.compile(r"^[a-zA-Z0-9_]{3,16}$")
+uuid_regex = re.compile(
+    r"^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|[0-9a-fA-F]{32})$"
+)
 
 origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
@@ -40,8 +44,7 @@ def root_route():
 
 class ReportInformation(BaseModel):
     token: str
-    username: str
-    uuid_dash: str
+    player: str
 
 
 def run_crawler(username, uuid_dash, task_job_id):
@@ -91,20 +94,29 @@ async def generate_report(input: ReportInformation = Body(...)):
     # Verify information.
     if input.token is None or input.token == "" or verify_base64(input.token) is False:
         return {"success": False, "error": "You have not provided a valid token."}
-    if username_regex.match(input.username) is None:
-        return {"success": False, "error": "You have not provided a valid username."}
-    try:
-        player_uuid = uuid.UUID(input.uuid_dash)
-        url = f"https://api.mojang.com/users/profiles/minecraft/{input.username}"
-        response = requests.get(url)
-        if response.status_code != 200:
-            return {"success": False, "error": "Username not found."}
-        mojang_uuid = response.json().get("id")
-        if mojang_uuid != str(player_uuid).replace("-", ""):
-            return {"success": False, "error": "UUID and Username do not match."}
 
-    except ValueError:
-        return {"success": False, "error": "You have not provided a valid UUID."}
+    player_username = None
+    player_uuid = None
+    if username_regex.match(input.player):
+        _player_uuid = get_player_uuid(input.player)
+        if player_uuid is type(dict):
+            return player_uuid
+        else:
+            player_uuid = _player_uuid
+            player_username = input.player
+
+    elif uuid_regex.match(input.player):
+        _player_username = get_player_username(input.player)
+        if player_username is type(dict):
+            return player_username
+        else:
+            player_username = _player_username
+            player_uuid = input.player
+    else:
+        return {
+            "success": False,
+            "error": "You have not provided a valid username or UUID.",
+        }
 
     # Check if token is valid with database.
     connection = sqlite3.Connection("databases/users.db")
@@ -121,7 +133,7 @@ async def generate_report(input: ReportInformation = Body(...)):
     cache_connection = sqlite3.Connection("databases/cache.db")
     cache_cursor = cache_connection.cursor()
     user_exist = cache_cursor.execute(
-        "SELECT * FROM cache WHERE player_uuid = ?", (input.uuid_dash.replace("-", ""),)
+        "SELECT * FROM cache WHERE player_uuid = ?", (player_uuid.replace("-", ""),)
     ).fetchone()
 
     # Used for testing new sources bypassing the cache
@@ -135,8 +147,8 @@ async def generate_report(input: ReportInformation = Body(...)):
         task_job_id = str(uuid.uuid4())
         queue.enqueue(
             run_crawler,
-            username=input.username,
-            uuid_dash=input.uuid_dash,
+            username=player_username,
+            uuid_dash=player_uuid,
             task_job_id=task_job_id,
             job_id=task_job_id,
             result_ttl=600,

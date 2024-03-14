@@ -94,9 +94,11 @@ class GoogleSheetsSpider(scrapy.Spider):
                     "url": url,
                     "reason": row[2],
                     "date": self._parse_date(row[3]),
-                    "expires": "Permanent"
-                    if row[4] == "Permanent"
-                    else self._parse_date(row[5]),
+                    "expires": (
+                        "Permanent"
+                        if row[4] == "Permanent"
+                        else self._parse_date(row[5])
+                    ),
                 }
             )
 

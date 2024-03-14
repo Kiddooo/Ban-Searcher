@@ -87,9 +87,11 @@ class MCCentralSpider(scrapy.Spider):
                         {
                             "source": domain,
                             "url": response.url,
-                            "reason": translate(ban_reason)
-                            if get_language(ban_reason) != "en"
-                            else ban_reason,
+                            "reason": (
+                                translate(ban_reason)
+                                if get_language(ban_reason) != "en"
+                                else ban_reason
+                            ),
                             "date": date,
                             "expires": expires,
                         }

@@ -100,9 +100,11 @@ class MCBouncerSpider(scrapy.Spider):
             {
                 "source": tldextract.extract(response.url).domain,
                 "url": response.url,
-                "reason": translate(ban_reason)
-                if get_language(ban_reason) != "en"
-                else ban_reason,
+                "reason": (
+                    translate(ban_reason)
+                    if get_language(ban_reason) != "en"
+                    else ban_reason
+                ),
                 "date": calculate_timestamp(
                     parse_date(ban_date.replace("\xa0", " "), settings={})
                 ),

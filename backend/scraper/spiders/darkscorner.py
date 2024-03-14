@@ -48,21 +48,26 @@ class DarksCornerSpider(scrapy.Spider):
                     {
                         "source": tldextract.extract(response.url).domain,
                         "url": response.url,
-                        "reason": translate(ban_reason)
-                        if get_language(ban_reason) != "en"
-                        else ban_reason,
+                        "reason": (
+                            translate(ban_reason)
+                            if get_language(ban_reason) != "en"
+                            else ban_reason
+                        ),
                         "date": calculate_timestamp(
                             parse_date(
                                 columns[2].xpath("text()").get(),
                                 settings={"TIMEZONE": "Etc/UTC"},
                             )
                         ),
-                        "expires": "Permanant"
-                        if columns[3].xpath("text()").get().strip().lower() == "never"
-                        else calculate_timestamp(
-                            parse_date(
-                                columns[3].xpath("text()").get(),
-                                settings={"TIMEZONE": "Etc/UTC"},
+                        "expires": (
+                            "Permanant"
+                            if columns[3].xpath("text()").get().strip().lower()
+                            == "never"
+                            else calculate_timestamp(
+                                parse_date(
+                                    columns[3].xpath("text()").get(),
+                                    settings={"TIMEZONE": "Etc/UTC"},
+                                )
                             )
                         ),
                     }

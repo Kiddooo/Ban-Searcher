@@ -2,7 +2,7 @@ import logging
 import os
 import re
 from datetime import datetime, timezone
-
+from uuid import UUID
 import dateparser
 import requests
 from bs4 import BeautifulSoup
@@ -21,8 +21,37 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
+def format_uuid(uuid_str):
+    return "-".join(
+        [uuid_str[i:j] for i, j in [(0, 8), (8, 12), (12, 16), (16, 20), (20, 32)]]
+    )
+
+
 class DateParsingError(Exception):
     pass
+
+
+def get_player_uuid(player_name: str):
+    uuid_url = f"https://api.mojang.com/users/profiles/minecraft/{player_name}"
+
+    response = requests.get(uuid_url)
+    if response.status_code != 200:
+        return {"success": False, "error": "Username not found."}
+    player_uuid = format_uuid(response.json().get("id"))
+
+    return player_uuid
+
+
+def get_player_username(player_uuid: UUID):
+    username_url = (
+        f"https://sessionserver.mojang.com/session/minecraft/profile/{player_uuid}"
+    )
+    response = requests.get(username_url)
+    if response.status_code != 200:
+        return {"success": False, "error": "UUID not found."}
+    player_username = response.json().get("name")
+
+    return player_username
 
 
 def parse_date(date_str: str, settings: dict):

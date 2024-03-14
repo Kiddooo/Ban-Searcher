@@ -101,12 +101,16 @@ class StrongcraftSpider(scrapy.Spider):
                 {
                     "source": tldextract.extract(response.url).domain,
                     "url": response.url,
-                    "reason": translate(ban_reason)
-                    if get_language(ban_reason) != "en"
-                    else ban_reason,
+                    "reason": (
+                        translate(ban_reason)
+                        if get_language(ban_reason) != "en"
+                        else ban_reason
+                    ),
                     "date": calculate_timestamp(parse_date(ban_date, settings={})),
-                    "expires": "Permanent"
-                    if row.text.split(",")[1].strip() == "ban is permanent."
-                    else row.text.split(",")[1].strip(),
+                    "expires": (
+                        "Permanent"
+                        if row.text.split(",")[1].strip() == "ban is permanent."
+                        else row.text.split(",")[1].strip()
+                    ),
                 }
             )

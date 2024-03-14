@@ -89,16 +89,20 @@ class MCBrawlSpider(scrapy.Spider):
                             {
                                 "source": tldextract.extract(response.url).domain,
                                 "url": response.url,
-                                "reason": translate(ban_reason)
-                                if get_language(ban_reason) != "en"
-                                else ban_reason,
+                                "reason": (
+                                    translate(ban_reason)
+                                    if get_language(ban_reason) != "en"
+                                    else ban_reason
+                                ),
                                 "date": calculate_timestamp(
                                     parse_date(columns[1].text, settings={}),
                                 ),
-                                "expires": "N/A"
-                                if columns[2].text == ""
-                                else calculate_timestamp(
-                                    parse_date(columns[2].text, settings={})
+                                "expires": (
+                                    "N/A"
+                                    if columns[2].text == ""
+                                    else calculate_timestamp(
+                                        parse_date(columns[2].text, settings={})
+                                    )
                                 ),
                             }
                         )

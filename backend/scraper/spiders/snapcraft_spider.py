@@ -78,9 +78,11 @@ class SnapcraftSpider(scrapy.Spider):
                     {
                         "source": tldextract.extract(response.url).domain,
                         "url": response.url,
-                        "reason": translate(ban_reason)
-                        if get_language(ban_reason) != "en"
-                        else ban_reason,
+                        "reason": (
+                            translate(ban_reason)
+                            if get_language(ban_reason) != "en"
+                            else ban_reason
+                        ),
                         "date": ban_date,
                         "expires": ban_expires,
                     }
