@@ -3,8 +3,7 @@ import re
 import sqlite3
 import uuid
 from datetime import datetime
-
-import requests
+from rq.exceptions import NoSuchJobError
 from utils import get_player_username, get_player_uuid
 from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,19 +17,22 @@ from datetime import timedelta
 from libs.Tokens import verify_base64
 from player_report import PlayerReport
 from scraper.pipelines import BanPipeline
+from dhooks import Webhook, Embed
+from dotenv import load_dotenv
+import os
 
+dotenv = load_dotenv()
 app = FastAPI()
 queue = Queue(connection=Redis())
 username_regex = re.compile(r"^[a-zA-Z0-9_]{3,16}$")
 uuid_regex = re.compile(
     r"^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|[0-9a-fA-F]{32})$"
 )
-
-origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+hook = Webhook(os.getenv("WEBHOOK_URL"))
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -159,7 +161,25 @@ async def generate_report(input: ReportInformation = Body(...)):
 @app.post("/check_report/{job_id}")
 async def check_report(job_id: str):
     redis_conn = Redis()
-    job = Job.fetch(job_id, connection=redis_conn)
+    cache_connection = sqlite3.Connection("databases/cache.db")
+    cache_cursor = cache_connection.cursor()
+
+    # Check the cache database first
+    cache_cursor.execute("SELECT * FROM cache WHERE job_id = ?", (job_id,))
+    job_exists = cache_cursor.fetchone()
+
+    if job_exists:
+        # If the job_id exists in the cache, return the existing data
+        return {"success": True, "data": json.loads(job_exists[1])}
+
+    # If the job_id does not exist in the cache, check Redis
+    try:
+        job = Job.fetch(job_id, connection=redis_conn)
+    except NoSuchJobError:
+        # If the job_id does not exist in Redis, return an error
+        return {"success": False, "error": "No results found for the given job_id."}
+
+
     if not job.is_finished:
         return {"success": False, "message": "Results are not available yet."}
 
@@ -167,36 +187,50 @@ async def check_report(job_id: str):
     if not result.type == result.Type.SUCCESSFUL:
         return {"success": False, "error": "Job was not successful."}
 
-    report_data = json.loads((redis_conn.get(job.return_value()).decode("utf-8")))
-    player_report = PlayerReport(
-        job.kwargs.get("username"),
-        job.kwargs.get("uuid_dash"),
-        sorted(report_data, key=lambda x: x["source"]),
-    )
+    # Attempt to get the report data from Redis
+    report_data = redis_conn.get(job.return_value())
+    if report_data is None:
+        # If not found in Redis, return an error since we expect the job to be present
+        return {"success": False, "error": "Report data not found in Redis."}
 
-    # Serialize the report data to a JSON string
-    report_json = json.dumps(player_report.generate_report())
-
-    # Check if the job_id exists in the cache
-    cache_connection = sqlite3.Connection("databases/cache.db")
-    cache_cursor = cache_connection.cursor()
-    cache_cursor.execute("SELECT * FROM cache WHERE job_id = ?", (job_id,))
-    job_exists = cache_cursor.fetchone()
-
-    if job_exists:
-        # If the job_id exists, return the existing data
-        return {"success": True, "data": json.loads(job_exists[1])}
     else:
-        # If the job_id does not exist, insert new data
+        # If the report data is found in Redis, proceed with generating the report
+        report_data = json.loads(report_data.decode("utf-8"))
+        player_report = PlayerReport(
+            job.kwargs.get("username"),
+            job.kwargs.get("uuid_dash"),
+            sorted(report_data, key=lambda x: x["source"]),
+        )
+
+        # Serialize the report data to a JSON string
+        report_json = player_report.generate_report()
+
+        # Insert the new cache data into the database
         cache_cursor.execute(
             "INSERT INTO cache (job_id, ban_data, timestamp, player_uuid) VALUES (?, ?, ?, ?)",
             (
                 job_id,
-                report_json,
+                json.dumps(report_json),
                 int(datetime.now().timestamp()),
                 job.kwargs.get("uuid_dash").replace("-", ""),
             ),
         )
         cache_connection.commit()
+
+        embed = Embed(
+            color=8311585,
+            timestamp='now'
+        )
+
+        embed.add_field(name="Type", value="New Cache Entry", inline=False)
+        embed.add_field(name="Job ID", value=job_id, inline=False)
+        embed.add_field(name="Username", value=job.kwargs.get('username'), inline=True)
+        embed.add_field(name="UUID", value=job.kwargs.get('uuid_dash'), inline=True)
+        embed.add_field(name="Total Bans", value=len(report_data), inline=False)
+
+        hook.send(embed=embed)
+
         print(f"Job: {job_id} - UUID: {job.kwargs.get('uuid_dash')} added to cache")
-        return {"success": True, "data": player_report.generate_report()}
+
+        # Return the report data
+        return {"success": True, "data": report_json}
