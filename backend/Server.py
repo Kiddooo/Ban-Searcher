@@ -135,7 +135,8 @@ async def generate_report(input: ReportInformation = Body(...)):
     cache_connection = sqlite3.Connection("databases/cache.db")
     cache_cursor = cache_connection.cursor()
     user_exist = cache_cursor.execute(
-        "SELECT * FROM cache WHERE player_uuid = ? ORDER BY timestamp DESC", (player_uuid.replace("-", ""),)
+        "SELECT * FROM cache WHERE player_uuid = ? ORDER BY timestamp DESC",
+        (player_uuid.replace("-", ""),),
     ).fetchone()
 
     # Used for testing new sources bypassing the cache
@@ -179,7 +180,6 @@ async def check_report(job_id: str):
         # If the job_id does not exist in Redis, return an error
         return {"success": False, "error": "No results found for the given job_id."}
 
-
     if not job.is_finished:
         return {"success": False, "message": "Results are not available yet."}
 
@@ -217,15 +217,12 @@ async def check_report(job_id: str):
         )
         cache_connection.commit()
 
-        embed = Embed(
-            color=8311585,
-            timestamp='now'
-        )
+        embed = Embed(color=8311585, timestamp="now")
 
         embed.add_field(name="Type", value="New Cache Entry", inline=False)
         embed.add_field(name="Job ID", value=job_id, inline=False)
-        embed.add_field(name="Username", value=job.kwargs.get('username'), inline=True)
-        embed.add_field(name="UUID", value=job.kwargs.get('uuid_dash'), inline=True)
+        embed.add_field(name="Username", value=job.kwargs.get("username"), inline=True)
+        embed.add_field(name="UUID", value=job.kwargs.get("uuid_dash"), inline=True)
         embed.add_field(name="Total Bans", value=len(report_data), inline=False)
 
         hook.send(embed=embed)

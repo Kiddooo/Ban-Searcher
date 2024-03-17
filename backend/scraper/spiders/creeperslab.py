@@ -1,5 +1,4 @@
 import json
-from urllib.parse import urljoin
 
 import scrapy
 import tldextract
@@ -57,7 +56,7 @@ class CreepersLabSpider(scrapy.Spider):
                         ),
                         "expires": (
                             "Permanent"
-                            if json_ban["end"] == None
+                            if json_ban["end"] is None
                             else int(dateparser.parse(json_ban["end"]).timestamp())
                         ),
                     }

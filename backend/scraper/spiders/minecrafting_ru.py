@@ -1,5 +1,3 @@
-import re
-
 import scrapy
 import tldextract
 from colorama import Fore, Style

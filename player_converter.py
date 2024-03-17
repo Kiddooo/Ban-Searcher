@@ -15,7 +15,9 @@ class PlayerValidationError(Exception):
 
 
 class Player(BaseModel):
-    SESSION_API_URL: ClassVar[HttpUrl] = "https://sessionserver.mojang.com/session/minecraft/profile/"
+    SESSION_API_URL: ClassVar[HttpUrl] = (
+        "https://sessionserver.mojang.com/session/minecraft/profile/"
+    )
     API_URL: ClassVar[HttpUrl] = "https://api.mojang.com/users/profiles/minecraft/"
     username: Optional[str] = None
     uuid: Optional[str] = None

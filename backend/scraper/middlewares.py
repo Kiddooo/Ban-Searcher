@@ -11,7 +11,7 @@ from twisted.web.http_headers import Headers
 class ScraperSpiderMiddleware:
     @classmethod
     def from_crawler(cls, crawler):
-        instance = cls()        
+        instance = cls()
         crawler.signals.connect(instance.spider_opened, signal=signals.spider_opened)
         return instance
 

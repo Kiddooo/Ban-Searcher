@@ -30,7 +30,7 @@ if len(rows) >= 1:
     sys.exit(0)
 
 id_exists = True
-while id_exists == True:
+while id_exists:
     user_id = str(uuid.uuid4())
     cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
     rows = cursor.fetchall()
@@ -38,7 +38,7 @@ while id_exists == True:
         id_exists = False
 
 token_exists = True
-while token_exists == True:
+while token_exists:
     user_token = generate_base64(32)
     cursor.execute("SELECT * FROM users WHERE token = ?", (user_token,))
     rows = cursor.fetchall()
