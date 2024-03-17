@@ -120,7 +120,7 @@ class FlareSolverrMiddleware:
         if request.meta.get("flare_solver", False):
             agent = Agent(reactor)
             body = json.dumps(
-                {"cmd": "request.get", "url": request.url, "maxTimeout": 60000}
+                {"cmd": "request.get", "url": request.url, "maxTimeout": 30000}
             ).encode("utf8")
             response = yield agent.request(
                 b"POST",
