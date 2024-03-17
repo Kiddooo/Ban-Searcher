@@ -135,11 +135,11 @@ async def generate_report(input: ReportInformation = Body(...)):
     cache_connection = sqlite3.Connection("databases/cache.db")
     cache_cursor = cache_connection.cursor()
     user_exist = cache_cursor.execute(
-        "SELECT * FROM cache WHERE player_uuid = ?", (player_uuid.replace("-", ""),)
+        "SELECT * FROM cache WHERE player_uuid = ? ORDER BY timestamp DESC", (player_uuid.replace("-", ""),)
     ).fetchone()
 
     # Used for testing new sources bypassing the cache
-    # user_exist = cache_cursor.execute("SELECT * FROM cache WHERE player_uuid = ?", ("test",)).fetchone()
+    # user_exist = cache_cursor.execute("SELECT * FROM cache WHERE player_uuid = ? ORDER BY timestamp DESC", ("test",)).fetchone()
 
     if user_exist and user_exist[2] >= one_month_ago:
         # Data is less than 1 month old, return the job_id from the cache
