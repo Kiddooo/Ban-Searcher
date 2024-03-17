@@ -2,13 +2,14 @@ beautifulsoup4==4.12.3
 colorama==0.4.4
 dateparser==1.2.0
 deep_translator==1.11.4
-fastapi==0.109.2
+dhooks==1.1.4
+fastapi==0.110.0
 Flask==3.0.2
 google_api_python_client==2.111.0
 InquirerPy==0.3.4
-prettytable==3.9.0
+prettytable==3.10.0
 protobuf==3.18.3
-pydantic==2.6.0
+pydantic==2.6.4
 python-dotenv==1.0.1
 redis==5.0.1
 Requests==2.31.0
@@ -16,4 +17,3 @@ rq==1.15.1
 Scrapy==2.11.0
 tldextract==3.1.2
 Twisted==22.10.0
-dhooks==1.1.4
