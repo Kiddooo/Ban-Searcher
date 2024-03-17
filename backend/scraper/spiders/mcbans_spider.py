@@ -21,16 +21,6 @@ class MCBansSpider(scrapy.Spider):
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
     ):
-        """
-        Initialize the MCBansSpider object.
-
-        Args:
-            username (str): The username of the player.
-            player_uuid (str): The UUID of the player.
-            player_uuid_dash (str): The UUID of the player with dashes.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__(*args, **kwargs)
 
         if not all([username, player_uuid, player_uuid_dash]):
@@ -41,12 +31,6 @@ class MCBansSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        """
-        Generate the initial request to scrape data from the MCBans website for a specific player.
-
-        Returns:
-            A generator that yields a single `scrapy.Request` object.
-        """
         url = f"https://www.mcbans.com/player/{self.player_uuid}/"
         logger.info(
             f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
@@ -54,15 +38,6 @@ class MCBansSpider(scrapy.Spider):
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
-        """
-        Parse the response and extract ban data from the MCBans website.
-
-        Args:
-            response (scrapy.http.Response): The response object from the initial request.
-
-        Yields:
-            BanItem: An item containing information about a ban for a specific player.
-        """
         soup = BeautifulSoup(response.text, "lxml")
 
         while True:
@@ -78,15 +53,6 @@ class MCBansSpider(scrapy.Spider):
                 yield scrapy.Request(next_page_url, callback=self.parse)
 
     def extract_data(self, soup):
-        """
-        Extracts ban data from a table in the HTML using BeautifulSoup.
-
-        Args:
-            soup (BeautifulSoup object): The BeautifulSoup object representing the HTML.
-
-        Returns:
-            list: A list of dictionaries containing ban data, where each dictionary has the keys 'reason' and 'date'.
-        """
         table = soup.find_all("table", class_=TABLE_CLASS)
         if table:
             data = []
@@ -100,16 +66,6 @@ class MCBansSpider(scrapy.Spider):
         return data
 
     def create_item(self, row: dict, response: scrapy.http.Response) -> BanItem:
-        """
-        Create a BanItem from a row of data.
-
-        Args:
-            row (dict): A dictionary containing the ban reason and date.
-            response (scrapy.http.Response): The response object from the initial request.
-
-        Returns:
-            BanItem: An object representing a ban record, with the source, URL, reason, date, and expires fields.
-        """
         reason = row["reason"]
         if get_language(reason) != "en":
             reason = translate(reason)

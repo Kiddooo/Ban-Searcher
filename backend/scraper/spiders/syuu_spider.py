@@ -23,16 +23,6 @@ class SyuuSpider(scrapy.Spider):
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
     ):
-        """
-        Initialize the SyuuSpider object.
-
-        Args:
-            username (str): The username of the player.
-            player_uuid (str): The UUID of the player.
-            player_uuid_dash (str): The UUID of the player with dashes.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__(*args, **kwargs)
 
         if not all([username, player_uuid, player_uuid_dash]):
@@ -43,9 +33,6 @@ class SyuuSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        """
-        Construct the URL using the player's UUID, make a request to that URL, and call the parse function when the request is completed.
-        """
         url = f"https://www.syuu.net/user/{self.player_uuid_dash}"
         logger.info(
             f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
@@ -53,15 +40,6 @@ class SyuuSpider(scrapy.Spider):
         yield scrapy.Request(url, callback=self.parse, meta={"flare_solver": True})
 
     def parse(self, response):
-        """
-        Parse the HTML response and extract relevant information about bans.
-
-        Args:
-            response (object): The HTML response from a website.
-
-        Yields:
-            scrapy.Request: A request object to scrape the ban URL.
-        """
         parsed_html = BeautifulSoup(response.text, "lxml")
         punishment_table = parsed_html.find(
             "table", id="punishment-table", class_="table table-bordered"
@@ -79,15 +57,6 @@ class SyuuSpider(scrapy.Spider):
                     )
 
     def parse_ban(self, response):
-        """
-        Parse the HTML response and extract ban details.
-
-        Args:
-            response (object): The HTML response from a website.
-
-        Yields:
-            BanItem: Represents a ban record scraped from a website, containing the source website, URL, reason for the ban, date of issue, and expiration date.
-        """
         # Parse the HTML response using BeautifulSoup
         parsed_html = BeautifulSoup(response.text, "lxml")
 

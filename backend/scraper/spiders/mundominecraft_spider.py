@@ -48,16 +48,6 @@ class MundoMinecraftSpider(scrapy.Spider):
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
     ):
-        """
-        Initialize the MundoMinecraftSpider object.
-
-        Args:
-            username (str): The username of the player.
-            player_uuid (str): The UUID of the player.
-            player_uuid_dash (str): The UUID of the player with dashes.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__(*args, **kwargs)
 
         if not all([username, player_uuid, player_uuid_dash]):
@@ -69,9 +59,6 @@ class MundoMinecraftSpider(scrapy.Spider):
 
     # Start the requests
     def start_requests(self):
-        """
-        Generate initial requests to be sent to the server.
-        """
         url = "http://mundo-minecraft.com:3000/graphql"
         self.headers["Referer"] = (
             "http://mundo-minecraft.com:3000/player/" + self.player_uuid_dash
@@ -94,16 +81,6 @@ class MundoMinecraftSpider(scrapy.Spider):
             )
 
     def parse(self, response, query_type):
-        """
-        Process the response received from the server and extract relevant information.
-
-        Args:
-            response (object): The response received from the server.
-            query_type (str): The type of query being processed.
-
-        Yields:
-            BanItem: A BanItem object for each ban or record found in the response.
-        """
         json_response = response.json()
         data = json_response.get("data")
         if data is not None:
@@ -120,16 +97,6 @@ class MundoMinecraftSpider(scrapy.Spider):
                 )
 
     def create_ban_item(self, ban: dict, url: str) -> BanItem:
-        """
-        Create a BanItem object based on the input ban data and URL.
-
-        Args:
-            ban (dict): A dictionary containing ban data, including the ban reason, creation date, and expiry date.
-            url (str): The URL of the ban record.
-
-        Returns:
-            BanItem: A BanItem object representing the ban record, with the source, URL, reason, date, and expiry fields populated.
-        """
         source = "mundominecraft"
         ban_reason = ban["reason"]
         reason = (
@@ -158,16 +125,6 @@ class MundoMinecraftSpider(scrapy.Spider):
         )
 
     def get_query_variables(self, type: str, user_uuid: str) -> dict:
-        """
-        Generate the variables for GraphQL queries based on the type and user_uuid.
-
-        Args:
-            type (str): The type of query being processed.
-            user_uuid (str): The UUID of the player.
-
-        Returns:
-            dict: A dictionary containing the variables for the GraphQL query based on the type input.
-        """
         variables = {
             "listPlayerPunishmentRecords": {
                 "activePage": 1,

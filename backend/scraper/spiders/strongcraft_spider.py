@@ -22,16 +22,6 @@ class StrongcraftSpider(scrapy.Spider):
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
     ):
-        """
-        Initialize the StrongcraftSpider object.
-
-        Args:
-            username (str): The username of the player.
-            player_uuid (str): The UUID of the player.
-            player_uuid_dash (str): The UUID of the player with dashes.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__(*args, **kwargs)
 
         if not all([username, player_uuid, player_uuid_dash]):
@@ -42,12 +32,6 @@ class StrongcraftSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        """
-        Generate initial requests to scrape player profiles on the Strongcraft website.
-
-        Returns:
-            A generator of scrapy.Request objects for each player profile URL.
-        """
         url = f"https://www.strongcraft.org/players/{self.player_uuid}/"
         logger.info(
             f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
@@ -55,16 +39,6 @@ class StrongcraftSpider(scrapy.Spider):
         yield scrapy.Request(url, callback=self.parse, meta={"dont_redirect": True})
 
     def parse(self, response):
-        """
-        Parses the response from a website and extracts ban details if the player is banned.
-
-        Args:
-            response (scrapy.Response): The response object containing the HTML content of the website.
-
-        Returns:
-            None: If the player profile is not found or the player is not banned.
-            BanItem: If the player is banned, the method yields a BanItem object containing the ban details.
-        """
         soup = BeautifulSoup(response.text, "lxml")
         if soup.find(
             text="Here you can look for the profile of any player on our network."
@@ -79,16 +53,6 @@ class StrongcraftSpider(scrapy.Spider):
                 yield from self.parse_ban_details(soup, response)
 
     def parse_ban_details(self, soup, response):
-        """
-        Parses the ban details from the soup object and yields a BanItem.
-
-        Args:
-            soup (BeautifulSoup): A BeautifulSoup object representing the HTML content of a website.
-            response (scrapy.Response): A scrapy.Response object containing the response from the website.
-
-        Yields:
-            BanItem: A BanItem object containing the ban details.
-        """
         table = soup.find("div", class_="container youplay-content")
         if table is not None:
             row = table.find_all("p")[2:-1][0]  # Skip the header row

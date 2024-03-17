@@ -17,16 +17,6 @@ class GoogleSheetsSpider(scrapy.Spider):
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
     ):
-        """
-        Initialize the GoogleSheetsSpider object.
-
-        Args:
-            username (str): The username of the player.
-            player_uuid (str): The UUID of the player.
-            player_uuid_dash (str): The UUID of the player with dashes.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__(*args, **kwargs)
 
         if not all([username, player_uuid, player_uuid_dash]):
@@ -37,9 +27,6 @@ class GoogleSheetsSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        """
-        Generator function that yields a scrapy.Request object to initiate the spider.
-        """
         yield scrapy.Request(
             url="https://example.com", callback=self.parse, dont_filter=True
         )
@@ -49,15 +36,6 @@ class GoogleSheetsSpider(scrapy.Spider):
         return deferToThread(self.read_google_sheets)
 
     def _parse_date(self, date_string: str) -> Union[int, str]:
-        """
-        Parse a date string and return the corresponding timestamp.
-
-        Args:
-            date_string (str): The date string to be parsed.
-
-        Returns:
-            Union[int, str]: The timestamp of the parsed date string. If the parsing fails or the year is not present, it returns "N/A".
-        """
         # Check if the date string contains a year
         if re.search(r"\b\d{4}\b", date_string):
             # Year is present, so try to parse the date string into a date object
@@ -69,11 +47,6 @@ class GoogleSheetsSpider(scrapy.Spider):
         return "N/A"
 
     def read_google_sheets(self) -> Generator[BanItem, None, None]:
-        """
-        Reads data from two ranges in a Google Sheets document using the Google Sheets API.
-        Retrieves the values from the "Universal Ban List" range and the "Previously Banned" range,
-        and yields `BanItem` objects for each row that matches the player's UUID.
-        """
         SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
         SPREADSHEET_ID = "1VdyBZs4B-qoA8-IijPvbRUVBLfOuU9I5fV_PhuOWJao"
         RANGE_NAME = "Universal Ban List"

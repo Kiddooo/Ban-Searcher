@@ -26,16 +26,6 @@ class MCBrawlSpider(scrapy.Spider):
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
     ):
-        """
-        Initialize the MCBrawlSpider object.
-
-        Args:
-            username (str): The username of the player.
-            player_uuid (str): The UUID of the player.
-            player_uuid_dash (str): The UUID of the player with dashes.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__(*args, **kwargs)
 
         if not all([username, player_uuid, player_uuid_dash]):
@@ -46,10 +36,6 @@ class MCBrawlSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        """
-        Construct the URL using the base URL and the player's username,
-        and yield a scrapy.Request object with the constructed URL and a callback function parse.
-        """
         url = BASE_URL + self.player_username
         logger.info(
             f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
@@ -57,15 +43,6 @@ class MCBrawlSpider(scrapy.Spider):
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
-        """
-        Parse the response and extract ban records.
-
-        Args:
-            response (scrapy.http.Response): The response object containing the HTML response from the website.
-
-        Yields:
-            BanItem: The ban item object for each ban found in the HTML response.
-        """
         soup = BeautifulSoup(response.text, "lxml")
 
         player_exists_div = soup.find("div", class_="alert alert-danger text-center")

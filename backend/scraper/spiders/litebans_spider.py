@@ -23,16 +23,6 @@ class LiteBansSpider(scrapy.Spider):
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
     ):
-        """
-        Initialize the LiteBansSpider object.
-
-        Args:
-            username (str): The username of the player.
-            player_uuid (str): The UUID of the player.
-            player_uuid_dash (str): The UUID of the player with dashes.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__(*args, **kwargs)
 
         if not all([username, player_uuid, player_uuid_dash]):
@@ -47,9 +37,6 @@ class LiteBansSpider(scrapy.Spider):
         )
 
     def start_requests(self):
-        """
-        Generate a list of URLs and make HTTP requests to each URL using Scrapy.
-        """
         urls = [
             "http://diemeesmcbans.nl/bans/history.php?uuid=",
             # "http://prestigebans.xyz/history.php?uuid=",
@@ -160,16 +147,6 @@ class LiteBansSpider(scrapy.Spider):
                 yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
-        """
-        Parse the response from a website and extract relevant information from the HTML table.
-        Handles pagination by recursively calling itself to parse the next page.
-
-        Args:
-            response (scrapy.Response): The response object containing the HTML content of the website.
-
-        Yields:
-            dict: A ban object for each row in the table that corresponds to a ban or porttikielto.
-        """
         soup = BeautifulSoup(response.text, "lxml")
         if soup.find_all(string="No punishments found."):
             return
@@ -217,29 +194,11 @@ class LiteBansSpider(scrapy.Spider):
                             yield scrapy.Request(next_page_url, callback=self.parse)
 
     def extract_headers(self, table):
-        """
-        Extract the headers from the table and convert them to lowercase.
-
-        Args:
-            table (bs4.element.Tag): The HTML table element.
-
-        Returns:
-            list: The lowercase headers.
-        """
         header_row = table.find("tr")
         headers = [cell.text.strip().lower() for cell in header_row.find_all("th")]
         return headers
 
     def find_indices(self, headers):
-        """
-        Find the indices of the cells corresponding to the reason, date, and expiry columns.
-
-        Args:
-            headers (list): The lowercase headers.
-
-        Returns:
-            tuple: The indices of the reason, date, and expiry columns.
-        """
         translated_headers = [
             self.translate_header("reason", header)
             or self.translate_header("date", header)
@@ -265,19 +224,6 @@ class LiteBansSpider(scrapy.Spider):
         return reason_index, date_index, expiry_index
 
     def generate_ban(self, columns, url, reason_index, date_index, expiry_index):
-        """
-        Generate a ban object using the columns.
-
-        Args:
-            columns (list): The columns of a row in the table.
-            url (str): The URL of the website.
-            reason_index (int): The index of the reason column.
-            date_index (int): The index of the date column.
-            expiry_index (int): The index of the expiry column.
-
-        Returns:
-            dict: The ban object.
-        """
         reason = columns[reason_index].text.strip()
         return BanItem(
             {
@@ -294,30 +240,11 @@ class LiteBansSpider(scrapy.Spider):
         )
 
     def extract_pagination_info(self, page_info_div):
-        """
-        Extract the current page number and total number of pages from the pagination information.
-
-        Args:
-            page_info_div (bs4.element.Tag): The div element containing the pagination information.
-
-        Returns:
-            tuple: The current page number and total number of pages.
-        """
         page_info_text = page_info_div.get_text()
         current_page, total_pages = map(int, re.findall(r"\d+", page_info_text))
         return current_page, total_pages
 
     def find_next_page_url(self, current_url, soup):
-        """
-        Find the URL of the next page.
-
-        Args:
-            current_url (str): The URL of the current page.
-            soup (BeautifulSoup): The BeautifulSoup object of the current page.
-
-        Returns:
-            str: The URL of the next page, or None if not found.
-        """
         next_page = soup.find(
             "div",
             class_="litebans-pager litebans-pager-right litebans-pager-active",
@@ -327,16 +254,6 @@ class LiteBansSpider(scrapy.Spider):
             return next_page_url
 
     def translate_header(self, type: str, header: str) -> Optional[str]:
-        """
-        Translates the header names in different languages.
-
-        Args:
-            type (str): The type of header to translate ('reason', 'date', 'expires').
-            header (str): The header name to be translated.
-
-        Returns:
-            str: The translated header type or None if no translation is found.
-        """
         header = header.lower()
 
         translations = {

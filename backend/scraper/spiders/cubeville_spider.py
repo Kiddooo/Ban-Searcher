@@ -18,16 +18,6 @@ class CubevilleSpider(scrapy.Spider):
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
     ):
-        """
-        Initialize the CubevilleSpider object.
-
-        Args:
-            username (str): The username of the player.
-            player_uuid (str): The UUID of the player.
-            player_uuid_dash (str): The UUID of the player with dashes.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__(*args, **kwargs)
 
         if not all([username, player_uuid, player_uuid_dash]):
@@ -38,12 +28,6 @@ class CubevilleSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        """
-        Generate the initial requests to scrape the banlist page for a specific player on the Cubeville website.
-
-        Returns:
-            A generator object that yields Scrapy `Request` objects.
-        """
         url = f"https://www.cubeville.org/cv-site/banlist.php/{self.player_username}"
         logger.info(
             f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
@@ -51,10 +35,6 @@ class CubevilleSpider(scrapy.Spider):
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
-        """
-        Parse response from request.
-        This function is called by Scrapy with the response of the request made in start_requests.
-        """
         # Find the first table in the parsed HTML
         table = response.css("table")
         # Select all rows
@@ -80,16 +60,6 @@ class CubevilleSpider(scrapy.Spider):
     def get_ban_expires(
         self, ban_duration_text: str, banned_at: datetime
     ) -> Union[str, int]:
-        """
-        Calculates the expiration date of a ban based on the ban duration text and the date the ban was issued.
-
-        Args:
-            ban_duration_text (str): The duration of the ban, e.g. "7 days".
-            banned_at (datetime): The date and time the ban was issued.
-
-        Returns:
-            Union[str, int]: The expiration date of the ban, either as the string "Permanent" or as an integer timestamp.
-        """
         if ban_duration_text == "permanent":
             return "Permanent"
         else:
@@ -99,18 +69,6 @@ class CubevilleSpider(scrapy.Spider):
             return int(expiration_date.timestamp())
 
     def create_ban_item(self, response, ban_reason, banned_at, ban_expires):
-        """
-        Create a BanItem object representing a ban record scraped from a website.
-
-        Args:
-            response (object): The response object from the web scraping request.
-            ban_reason (str): The reason for the ban.
-            banned_at (datetime): The date and time the ban was issued.
-            ban_expires (Union[str, int]): The expiration date of the ban, either as the string "Permanent" or as an integer timestamp.
-
-        Returns:
-            BanItem: The created BanItem object with the specified fields.
-        """
         domain = tldextract.extract(response.url).domain
         reason = (
             translate(ban_reason) if get_language(ban_reason) != "en" else ban_reason

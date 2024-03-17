@@ -16,16 +16,6 @@ class DemocracycraftSpider(Spider):
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
     ):
-        """
-        Initialize the DemocracycraftSpider object.
-
-        Args:
-            username (str): The username of the player.
-            player_uuid (str): The UUID of the player.
-            player_uuid_dash (str): The UUID of the player with dashes.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__(*args, **kwargs)
 
         if not all([username, player_uuid, player_uuid_dash]):
@@ -36,9 +26,6 @@ class DemocracycraftSpider(Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        """
-        Construct the URL using the player's username and yield a scrapy.Request object with the URL as a callback to the parse method.
-        """
         base_url = "https://www.democracycraft.net/logs/user/"
         url = urljoin(base_url, self.player_username)
         logger.info(
@@ -47,15 +34,6 @@ class DemocracycraftSpider(Spider):
         yield Request(url, callback=self.parse, meta={"dont_redirect": True})
 
     def parse(self, response):
-        """
-        Parse the HTML response and extract ban records.
-
-        Args:
-            response (scrapy.http.Response): The HTML response received from the website.
-
-        Yields:
-            BanItem: A BanItem object for each ban record found in the HTML response.
-        """
         soup = BeautifulSoup(response.text, "lxml")
         table = self._parse_table(soup)
 

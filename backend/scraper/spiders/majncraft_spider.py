@@ -22,16 +22,6 @@ class MajncraftSpider(scrapy.Spider):
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
     ):
-        """
-        Initialize the MajncraftSpider object.
-
-        Args:
-            username (str): The username of the player.
-            player_uuid (str): The UUID of the player.
-            player_uuid_dash (str): The UUID of the player with dashes.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__(*args, **kwargs)
 
         if not all([username, player_uuid, player_uuid_dash]):
@@ -42,9 +32,6 @@ class MajncraftSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self) -> Iterator[scrapy.Request]:
-        """
-        Construct the URL and yield a Scrapy request to that URL with the `parse` method as the callback.
-        """
         url = f"https://server.majncraft.cz/player/{self.player_username}"
         logger.info(
             f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
@@ -52,13 +39,6 @@ class MajncraftSpider(scrapy.Spider):
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
-        """
-        Parse the response text from a website and extract ban details from the ban list section.
-
-        :param response: The response object from the website.
-        :type response: scrapy.Response
-        :return: None
-        """
         # Find the section with the list of bans
         ban_list_section = response.css("section.list.list-ban")
         # If the ban list section is found

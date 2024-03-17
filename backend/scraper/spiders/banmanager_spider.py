@@ -27,17 +27,6 @@ class BanManagerSpider(scrapy.Spider):
         *args,
         **kwargs,
     ):
-        """
-        Initialize the BanManagerSpider object.
-
-        Args:
-            username (str): The username of the player.
-            player_uuid (str): The UUID of the player.
-            player_uuid_dash (str): The UUID of the player with dashes.
-            urls (list): A list of URLs to scrape ban information from.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__(*args, **kwargs)
 
         if not all([username, player_uuid, player_uuid_dash]):
@@ -49,12 +38,6 @@ class BanManagerSpider(scrapy.Spider):
         self.urls = URLS
 
     def start_requests(self):
-        """
-        Generate initial requests to scrape ban information from multiple URLs.
-
-        Yields:
-            scrapy.Request: A request object for each URL with a callback function set to `parse`.
-        """
         for url in self.urls:
             logger.info(
                 f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
@@ -63,16 +46,6 @@ class BanManagerSpider(scrapy.Spider):
             yield scrapy.Request(url=modified_url, callback=self.parse)
 
     def parse(self, response):
-        """
-        Parse the HTML response and extract information about the current ban and previous bans.
-
-        Args:
-            response (Response): The response object containing the HTML content.
-
-        Yields:
-            BanItem: Representing the current ban and previous bans.
-        """
-
         # Parse current ban
         current_ban_table = response.css("table#current-ban")
         if current_ban_table:
