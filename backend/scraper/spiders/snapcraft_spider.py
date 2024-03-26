@@ -20,16 +20,6 @@ class SnapcraftSpider(scrapy.Spider):
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
     ):
-        """
-        Initialize the SnapcraftSpider object.
-
-        Args:
-            username (str): The username of the player.
-            player_uuid (str): The UUID of the player.
-            player_uuid_dash (str): The UUID of the player with dashes.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__(*args, **kwargs)
 
         if not all([username, player_uuid, player_uuid_dash]):
@@ -40,12 +30,6 @@ class SnapcraftSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        """
-        Generate initial requests to scrape data from two different URLs.
-
-        Returns:
-            generator: A generator that yields scrapy.Request objects for each URL.
-        """
         urls = [
             f"https://snapcraft.net/bans/search/{self.player_username}/?filter=bans",
             f"https://www.mcfoxcraft.com/bans/search/{self.player_username}/?filter=bans",
@@ -57,15 +41,6 @@ class SnapcraftSpider(scrapy.Spider):
             yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
-        """
-        Parse the response and extract ban data.
-
-        Args:
-            response (scrapy.http.Response): The response object containing the HTML response from the website.
-
-        Yields:
-            BanItem: A BanItem object with the extracted ban data.
-        """
         soup = BeautifulSoup(response.text, "lxml")
         table = soup.find("div", class_="ndzn-litebans-table")
         if table:
@@ -89,30 +64,12 @@ class SnapcraftSpider(scrapy.Spider):
                 )
 
     def get_ban_date(self, row):
-        """
-        Parses the ban date from a given HTML row.
-
-        Args:
-            row (BeautifulSoup object): The HTML row containing the ban date information.
-
-        Returns:
-            int or str: The ban date as an integer timestamp or 'N/A' if the parsing fails.
-        """
         ban_date = calculate_timestamp(
             parse_date(row.find("div", class_="td _date").text.strip(), settings={})
         )
         return ban_date
 
     def get_ban_expiry(self, row):
-        """
-        Parse the ban expiry date from the given HTML row and return it as an integer timestamp or 'N/A' if parsing fails.
-
-        Args:
-            row (BeautifulSoup object): The HTML row containing the ban expiry date information.
-
-        Returns:
-            int or str: The ban expiry date as an integer timestamp or 'N/A' if parsing fails.
-        """
         ban_expires = row.find("div", class_="td _expires").text.strip().split(" (")[0]
         if ban_expires == "Expired":
             return "N/A"

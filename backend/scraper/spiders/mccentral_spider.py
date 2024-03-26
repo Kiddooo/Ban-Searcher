@@ -23,16 +23,6 @@ class MCCentralSpider(scrapy.Spider):
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
     ):
-        """
-        Initialize the MCCentralSpider object.
-
-        Args:
-            username (str): The username of the player.
-            player_uuid (str): The UUID of the player.
-            player_uuid_dash (str): The UUID of the player with dashes.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__(*args, **kwargs)
 
         if not all([username, player_uuid, player_uuid_dash]):
@@ -43,9 +33,6 @@ class MCCentralSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        """
-        Constructs the URL and sends a request to the specified URL using the Scrapy framework.
-        """
         url = f"{BASE_URL}{self.player_uuid}"
         logger.info(
             f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
@@ -53,15 +40,6 @@ class MCCentralSpider(scrapy.Spider):
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
-        """
-        Parse the JSON response and extract relevant information for each offence.
-
-        Args:
-            response (object): The response object received from a website.
-
-        Yields:
-            BanItem: A BanItem object for each valid offence found in the JSON response.
-        """
         json_response = json.loads(response.text)["results"]
 
         if json_response["offence_count"] != 0:

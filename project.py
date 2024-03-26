@@ -65,9 +65,7 @@ def clear_screen() -> None:
         # Determine the clear_screen_command based on the operating system
         clear_screen_command = "cls" if os.name == "nt" else "clear"
         # Execute the clear_screen_command to clear the screen
-        return_code = subprocess.run(
-            clear_screen_command, shell=True
-        ).returncode  # nosec
+        return_code = subprocess.run(clear_screen_command, shell=True).returncode  # nosec
         if return_code != 0:
             raise OSError(f"Failed to clear the screen. Return code: {return_code}")
     except Exception as e:

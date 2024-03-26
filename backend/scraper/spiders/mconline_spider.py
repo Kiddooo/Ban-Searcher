@@ -15,16 +15,6 @@ class MCOnlineSpider(scrapy.Spider):
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
     ):
-        """
-        Initialize the MCOnlineSpider object.
-
-        Args:
-            username (str): The username of the player.
-            player_uuid (str): The UUID of the player.
-            player_uuid_dash (str): The UUID of the player with dashes.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__(*args, **kwargs)
 
         if not all([username, player_uuid, player_uuid_dash]):
@@ -35,12 +25,6 @@ class MCOnlineSpider(scrapy.Spider):
         self.player_uuid_dash = player_uuid_dash
 
     def start_requests(self):
-        """
-        Generates a Scrapy Request object to scrape player information from a website.
-
-        Returns:
-            Request: A Scrapy Request object with the URL and callback function.
-        """
         url = URL_TEMPLATE + self.player_username
         logger.info(
             f"{Fore.YELLOW}{self.name} | Started Scraping: {tldextract.extract(url).registered_domain}{Style.RESET_ALL}"
@@ -48,15 +32,6 @@ class MCOnlineSpider(scrapy.Spider):
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
-        """
-        Parse the response received from a website and extract relevant information to create a BanItem object.
-
-        Args:
-            response (scrapy.http.Response): The response object received from a website.
-
-        Yields:
-            BanItem: A BanItem object containing the parsed ban information.
-        """
         # Split the response text by line and semicolon
         ban_info = response.text.split("\n")[3:-1][0].split(";")
 

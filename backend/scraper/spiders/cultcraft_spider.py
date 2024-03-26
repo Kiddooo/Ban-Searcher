@@ -17,16 +17,6 @@ class CultcraftSpider(Spider):
     def __init__(
         self, username=None, player_uuid=None, player_uuid_dash=None, *args, **kwargs
     ):
-        """
-        Initialize the CultcraftSpider object.
-
-        Args:
-            username (str): The username of the player.
-            player_uuid (str): The UUID of the player.
-            player_uuid_dash (str): The UUID of the player with dashes.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         super().__init__(*args, **kwargs)
 
         if not all([username, player_uuid, player_uuid_dash]):
@@ -75,7 +65,6 @@ class CultcraftSpider(Spider):
                 )
 
     def create_ban_item(self, url, reason, date, expires):
-        """Creates a BanItem with translated reason if necessary."""
         reason = translate(reason) if get_language(reason) != "en" else reason
         return BanItem(
             {

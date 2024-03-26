@@ -3,7 +3,6 @@ import sqlite3
 import sys
 import uuid
 
-from libs.Tokens import generate_base64
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--uuid")
