@@ -169,3 +169,5 @@ backend/database.db
 backend/dump.rdb
 backend/databases/cache.db
 backend/databases/users.db
+dump.rdb
+.vscode/settings.json

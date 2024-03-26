@@ -52,26 +52,25 @@ class LiteBansSpider(scrapy.Spider):
         """
         urls = [
             "http://diemeesmcbans.nl/bans/history.php?uuid=",
-            # "http://prestigebans.xyz/history.php?uuid=",
+            "http://prestigebans.xyz/history.php?uuid=",
             "http://www.dodedge.com/bans/history.php?uuid=",
             "http://www.pokerevolution.es/bans/history.php?uuid=",
             "https://advanciuspunishments.website/history.php?uuid=",
             "https://alttd.com/bans/history?uuid=",
             "https://atomicnetwork.eu/bans/history.php?uuid=",
             "https://ban.laborcraft.net/history.php?uuid=",
-            # "https://banlog.mythictales.it/history.php?uuid=",
             "https://bans.dogecraft.net/history.php?uuid=",
             "https://bans.dragonstone.pw/history.php?uuid=",
             "https://bans.g4meworld.net/history.php?uuid=",
             "https://bans.gp-mc.net/history.php?uuid=",
             "https://bans.horizonsend.net/history.php?uuid=",
             "https://bans.hublolland.dk/history.php?uuid=",
-            # "https://bans.kiwismp.fun/history.php?uuid=",
+            # "https://bans.kiwismp.fun/history.php?uuid=", // offline
             "https://bans.neocubest.com/history?uuid=",
             "https://bans.pixelgaming.co/history.php?uuid=",
             "https://bans.purityvanilla.com/history.php?uuid=",
             "https://bans.renatusnetwork.com/history.php?uuid=",
-            # "https://bans.secure-heaven.com/history.php?uuid=",
+            # "https://bans.secure-heaven.com/history.php?uuid=", // offline
             "https://bans.shadowraptor.net/history.php?uuid=",
             "https://bans.siriusmc.net/history.php?uuid=",
             "https://bans.skykingdoms.net/history.php?uuid=",
@@ -80,7 +79,7 @@ class LiteBansSpider(scrapy.Spider):
             "https://bans.truesmp.org/history.php?uuid=",
             "https://bans.unitedfactions.net/history.php?uuid=",
             "https://bans.valatic.net/history.php?uuid=",
-            # "https://bans.yesssirbox.xyz/history.php?uuid=",
+            # "https://bans.yesssirbox.xyz/history.php?uuid=", // offline
             "https://bluecraft.dk/bans/history.php?uuid=",
             "https://bridger.land/bans/history.php?uuid=",
             "https://build.mcmiddleearth.com/bans/history.php?uuid=",
@@ -88,8 +87,8 @@ class LiteBansSpider(scrapy.Spider):
             "https://dankprison.com/bans/history.php?uuid=",
             "https://differentcraft.net/bans/history.php?uuid=",
             "https://hearthcraft.net/bans/history.php?uuid=",
-            # "https://hydrapvp.it/bans/history.php?uuid=",
-            # "https://infracciones.acropolis-mc.com/history.php?uuid=",
+            # "https://hydrapvp.it/bans/history.php?uuid=", // offline
+            # "https://infracciones.acropolis-mc.com/history.php?uuid=", // offline
             "https://justleader.net/tresty/history/",
             "https://litebans.shiuki.eu.org/minersleague/punishments/history.php?uuid=",
             "https://lostgamers.eu/punishments/history.php?uuid=",
@@ -97,18 +96,17 @@ class LiteBansSpider(scrapy.Spider):
             "https://medievalpvp.net/bans/history.php?uuid=",
             "https://minecochia.net/bans/history.php?uuid=",
             "https://minecraft-romania.ro/sanctiuni/history.php?uuid=",
-            # "https://minecraft.mgn.gg/bans/history.php?uuid=",
+            # "https://minecraft.mgn.gg/bans/history.php?uuid=", // offline
             "https://minedhype.com/bans/history.php?uuid=",
             "https://nd2.worldofkeralis.com/bans/history.php?uuid=",
             "https://ottercraft.net/LiteBans/history.php?uuid=",
-            # "https://punishments.direskies.net/history.php?uuid=",
-            # "https://rankku.motimaa.net/history/",
+            # "https://punishments.direskies.net/history.php?uuid=", // offline
+            # "https://rankku.motimaa.net/history/", // offline
             "https://siphonmc.com/bans/history/",
             "https://site.cynagen.xyz/bans/history.php?uuid=",
             "https://wickedworlds.ca/bans/history.php?uuid=",
             "https://www.airidale.net/bans/history.php?uuid=",
             "https://www.hoobs.live/minecraft/bans/history.php?uuid=",
-            # "https://www.karmacraft.es/Sanciones/history.php?uuid=",
             "https://www.kingscraft.co.uk/bans/history.php?uuid=",
             "https://www.minelife.eu/bans/history.php?uuid=",
             "https://www.mooncraft.es/bans/history.php?uuid=",
@@ -125,6 +123,9 @@ class LiteBansSpider(scrapy.Spider):
             "https://bans.raimu.space/history.php?uuid=",
             "https://mc.nopixel.pl/litebans/history.php?uuid=",
             "https://www.vestlandetmc.no/bans/history.php?uuid=",
+            "https://bans.prismparty.net/history/",
+            "https://coastsidemc.com/bans/bans.php?uuid=",
+            # "https://bans.thecoilmc.com/history.php?uuid=" // slow response time
         ]
         for url in urls:
             logger.info(
@@ -134,14 +135,14 @@ class LiteBansSpider(scrapy.Spider):
             yield scrapy.Request(url, callback=self.parse)
 
         urls2 = [
-            # "http://eventyrcraft.net/ban/history.php?uuid=",
+            # "http://eventyrcraft.net/ban/history.php?uuid=", // offline
             "https://minecraft.rtgame.co.uk/bans/history.php?uuid=",
             "https://saicopvp.com/bans/history.php?uuid=",
             "https://bans.astrocraft.org/history.php?uuid=",
             "https://punishments.baconetworks.com/history?uuid=",
             "https://play.hellominers.com/bans/history.php?uuid=",
             "https://nytro.co/bans/history.php?uuid=",
-            # "https://www.pickaxemania.com/playerstatus/history.php?uuid=",
+            # "https://www.pickaxemania.com/playerstatus/history.php?uuid=", // offline
             "https://opblocks.com/bans/history.php?uuid=",
             "https://www.craftersland.net/infbans/history.php?uuid=",
             "https://bans.aliquam.org/history.php?uuid=",
