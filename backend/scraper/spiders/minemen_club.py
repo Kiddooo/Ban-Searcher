@@ -1,15 +1,10 @@
-import re
 
 import scrapy
 import tldextract
 from colorama import Fore, Style
 
 from backend.utils import (
-    calculate_timestamp,
-    get_language,
     logger,
-    parse_date,
-    translate,
 )
 from scraper.items import BanItem
 
